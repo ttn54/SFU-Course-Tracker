@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "nodenext",
+    "moduleResolution": "nodenext", // Required for "module": "nodenext"
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "types": ["node"], // Tells TypeScript to recognize Node.js globals
+    
+    "sourceMap": true,
+    
+    "strict": true,
+    "verbatimModuleSyntax": true, // Your strict setting
+    "esModuleInterop": true,      // Good for compatibility
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
