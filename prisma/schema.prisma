@@ -1,0 +1,33 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Reads the secret URL from your .env file
+}
+
+// User model for authentication and tracking
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String   
+  completedCourses String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Course model for all available courses and their rules
+model Course {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  name        String   
+  
+  // This is our "intentional mistake" for the commit history.
+  // We're only adding "AND" prerequisites for now.
+  // We will "discover" we need "OR" prerequisites later.
+  prerequisites String[] 
+}
