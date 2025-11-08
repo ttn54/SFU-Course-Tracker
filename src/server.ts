@@ -1,19 +1,32 @@
-import express from 'express'; // 1. Import Express
-import dotenv from 'dotenv'; // 2. Import dotenv to manage secrets
+import express from 'express';
+import cors from 'cors'; // Import cors
+import dotenv from 'dotenv';
+import authRoutes from './routes/authRoutes'; // Import our new routes
 
-// 3. Load environment variables from .env file
+// Load environment variables
 dotenv.config();
 
-const app = express(); // 4. Create your server instance
-const PORT = process.env.PORT || 3000; // 5. Set the port
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-// 6. Define a route: "When someone visits the main URL..."
+// Middleware
+app.use(cors()); // Use cors
+app.use(express.json()); // Use the built-in JSON parser
+
+// Routes
+app.use('/auth', authRoutes); // Use our auth routes
+
+// Health check endpoint
 app.get('/health', (req, res) => {
-  // 7. "...send this response."
   res.status(200).json({ status: 'ok', message: 'Server is running' });
 });
 
-// 8. Start the server and listen for requests
+// 404 handler (must be after all routes)
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
+// Start server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
