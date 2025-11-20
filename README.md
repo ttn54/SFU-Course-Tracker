@@ -1,6 +1,6 @@
 # 🎓 SFU Course Prerequisite Tracker
 
-A full-stack web application that helps Simon Fraser University (SFU) students track their completed courses and discover which courses they're eligible to take next based on prerequisite requirements.
+A full-stack web application that helps Simon Fraser University (SFU) CS students track their completed courses and discover which courses they're eligible to take next based on prerequisite requirements.
 
 ## 🚀 Features
 
@@ -251,7 +251,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📝 License
 
-This project is licensed under the ISC License.
+ISC
 
 ## 👤 Author
 
@@ -261,7 +261,7 @@ This project is licensed under the ISC License.
 ## 🙏 Acknowledgments
 
 - Course data based on SFU's Computing Science program requirements
-- Built as a portfolio project to demonstrate full-stack development skills
+- Built as a portfolio project
 
 ---
 
