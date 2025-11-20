@@ -1,32 +1,31 @@
 import express from 'express';
-import cors from 'cors'; // Import cors
+import cors from 'cors';
 import dotenv from 'dotenv';
-import authRoutes from './routes/authRoutes'; // Import our new routes
+import authRoutes from './routes/authRoutes';
+import userRoutes from './routes/userRoutes';     // <--- NEW
+import courseRoutes from './routes/courseRoutes'; // <--- NEW
 
-// Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors()); // Use cors
-app.use(express.json()); // Use the built-in JSON parser
+app.use(cors());
+app.use(express.json());
 
 // Routes
-app.use('/auth', authRoutes); // Use our auth routes
+app.use('/auth', authRoutes);
+app.use('/api/user', userRoutes);      // <--- NEW
+app.use('/api/courses', courseRoutes); // <--- NEW
 
-// Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Server is running' });
 });
 
-// 404 handler (must be after all routes)
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-// Start server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
