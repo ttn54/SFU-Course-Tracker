@@ -33,7 +33,7 @@ COPY init.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/init.sh
 
 COPY package*.json ./
-COPY prisma ./prisma/
+COPY ../prisma ./prisma/
 
 RUN npm ci --only=production
 RUN npx prisma generate
