@@ -3,14 +3,14 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
-COPY tsconfig.json ./
+COPY frontend/package*.json ./
+COPY frontend/tsconfig.json ./
 COPY prisma ./prisma/
 
 RUN npm install
 RUN npx prisma generate
 
-COPY . .
+COPY frontend/ .
 RUN npm run build
 
 # --- Stage 2: The Runner ---
@@ -26,14 +26,14 @@ RUN apk add openssh \
     && chmod +x /usr/sbin/sshd
 
 # Copy the sshd_config file to enable SSH
-COPY sshd_config /etc/ssh/
+COPY frontend/sshd_config /etc/ssh/
 
 # Copy initialization script
-COPY init.sh /usr/local/bin/
+COPY frontend/init.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/init.sh
 
-COPY package*.json ./
-COPY ../prisma ./prisma/
+COPY frontend/package*.json ./
+COPY prisma ./prisma/
 
 RUN npm ci --only=production
 RUN npx prisma generate

@@ -26,7 +26,8 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v4
       with:
-        context: ./frontend
+        context: .
+        file: ./frontend/Dockerfile
         push: true
         tags: sfucoursetrackerzen.azurecr.io/sfu-course-tracker-app:latest
         cache-from: type=registry,ref=sfucoursetrackerzen.azurecr.io/sfu-course-tracker-app:latest
