@@ -27,7 +27,7 @@ def main():
         return
     
     YEAR, TERM = available_data[0]
-    DEPARTMENTS = ["cmpt"]
+    DEPARTMENTS = ["cmpt", "math", "macm", "stat"]
     
     print(f"\n🚀 Starting SFU Course Crawler")
     print(f"📅 Target: {TERM.upper()} {YEAR}")
