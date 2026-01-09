@@ -1,200 +1,159 @@
 """
 Seed the database with courses from fall_2025_courses.json
-
-Day 2 Version: Basic seeding without prerequisite parsing.
-We'll add the PrerequisiteParser in Day 3 when we build the validation API.
+and fetch prerequisites from CourSys for each course.
 """
 import json
 import sys
+import requests
+import re
 from pathlib import Path
 from sqlmodel import Session, create_engine, SQLModel, select
 
-# Add parent directory to path so we can import models
+# Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from models import Course, Section
-from config import settings
+from models import Course
+from services.parser import PrerequisiteParser
+
+
+def clean_prerequisite(prereq_text: str) -> str:
+    """Clean prerequisite text."""
+    if not prereq_text:
+        return ""
+    
+    # Remove "Either" prefix
+    prereq_text = re.sub(r'^Either\s+', '', prereq_text, flags=re.IGNORECASE)
+    
+    # Remove grade requirements
+    prereq_text = re.sub(r'\s*all with a minimum grade of [A-D][+-]?', '', prereq_text, flags=re.IGNORECASE)
+    prereq_text = re.sub(r',?\s*with a minimum grade of [A-D][+-]?', '', prereq_text, flags=re.IGNORECASE)
+    
+    # Remove program-specific text
+    prereq_text = re.sub(r',?\s*for students in .*?(?:program|major)', '', prereq_text, flags=re.IGNORECASE)
+    
+    return prereq_text.strip()
+
+
+def fetch_prerequisite(dept: str, number: str, term: str = '2025fa') -> str:
+    """Fetch prerequisite from CourSys."""
+    url = f'https://coursys.sfu.ca/browse/info/{term}-{dept.lower()}-{number.lower()}-d1?data=yes'
+    
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            desc = data.get('descrlong', '')
+            
+            # Extract prerequisite
+            match = re.search(r'Prerequisite[s]?:\s*(.+?)(?:<br|$)', desc, re.IGNORECASE)
+            if match:
+                prereq = match.group(1).strip()
+                return clean_prerequisite(prereq)
+    except Exception as e:
+        print(f"  Error fetching {dept}-{number}: {e}")
+    
+    return ""
 
 
 def main():
-    """Main seeding function."""
+    # Database setup
+    DATABASE_URL = "sqlite:///./sfu_scheduler.db"
+    engine = create_engine(DATABASE_URL, echo=False)
     
-    # DATABASE SETUP
-    engine = create_engine(settings.DATABASE_URL, echo=False)
-
-    print("📦 Creating database tables...")
+    # Create tables
+    print("Creating database tables...")
     SQLModel.metadata.create_all(engine)
     
-    
-    #LOAD JSON DATA
-    json_path = Path(__file__).parent / "data" / "fall_2025_courses.json"
-    
-    print(f"📖 Loading course data from {json_path.name}...")
-    with open(json_path, 'r', encoding='utf-8') as f:
+    # Load course data
+    json_path = Path(__file__).parent / "data" / "fall_2025_courses_with_enrollment.json"
+    with open(json_path, 'r') as f:
         courses_data = json.load(f)
     
-    print(f"   Found {len(courses_data)} course sections in JSON\n")
+    print(f"Loaded {len(courses_data)} course sections from JSON")
     
-    
-    # DEDUPLICATE COURSES
-    
-    unique_courses = {}  # Key: "CMPT-120", Value: course info dict
-    
-    for section_data in courses_data:
-        info = section_data.get('info', {})
+    # Deduplicate by course (dept + number)
+    unique_courses = {}
+    for course in courses_data:
+        info = course.get('info', {})
         dept = info.get('dept')
         number = info.get('number')
+        title = info.get('title')
         
-        if not dept or not number:
-            continue  # Skip malformed data
-        
-        course_id = f"{dept}-{number}"
-        
-        # Only store first occurrence (all sections have same course info)
-        if course_id not in unique_courses:
-            unique_courses[course_id] = {
-                'id': course_id,
-                'dept': dept,
-                'number': number,
-                'title': info.get('title', 'No Title'),
-                'description': info.get('courseDetails', ''),
-                'credits': int(info.get('units', '3')),
-                'prerequisites_raw': info.get('prerequisites', '').strip() or None
-            }
+        if dept and number:
+            course_id = f"{dept}-{number}"
+            if course_id not in unique_courses:
+                unique_courses[course_id] = {
+                    'dept': dept,
+                    'number': number,
+                    'title': title,
+                    'courseDetails': info.get('courseDetails', ''),
+                    'credits': info.get('units', '3')
+                }
     
-    print(f"🎯 Deduplication complete: {len(unique_courses)} unique courses\n")
+    print(f"Found {len(unique_courses)} unique courses")
     
+    # Parse prerequisites
+    parser = PrerequisiteParser()
     
-    # SEED COURSES
+    # Seed database
     with Session(engine) as session:
-        added_courses = 0
-        skipped_courses = 0
-        
-        print("💾 Seeding Course table...")
+        added_count = 0
+        updated_count = 0
         
         for course_id, course_info in unique_courses.items():
-            # Check if course already exists (in case we run script twice)
+            dept = course_info['dept']
+            number = course_info['number']
+            
+            # Check if course exists
             existing = session.exec(
                 select(Course).where(Course.id == course_id)
             ).first()
             
+            # Fetch prerequisite from CourSys
+            print(f"Processing {course_id}...", end=' ')
+            prereq_raw = fetch_prerequisite(dept, number)
+            
+            if prereq_raw:
+                print(f"✓ Prerequisites: {prereq_raw[:50]}...")
+            else:
+                print("✗ No prerequisites")
+            
+            # Parse prerequisite into logic tree
+            prereq_logic = None
+            if prereq_raw:
+                try:
+                    prereq_logic = parser.parse(prereq_raw)
+                except Exception as e:
+                    print(f"  Warning: Failed to parse prerequisites: {e}")
+            
             if existing:
-                skipped_courses += 1
-                continue
-            
-            # Create new Course record
-            new_course = Course(**course_info)
-            session.add(new_course)
-            added_courses += 1
-            
-            # Print progress every 50 courses
-            if added_courses % 50 == 0:
-                print(f"   Added {added_courses} courses...")
-        
-        # Commit course insertions
-        session.commit()
-        print(f"   ✅ Courses: {added_courses} added, {skipped_courses} skipped\n")
-        
-        
-        # 5. SEED SECTIONS
-        added_sections = 0
-        skipped_sections = 0
-        
-        print("💾 Seeding Section table...")
-        
-        for section_data in courses_data:
-            info = section_data.get('info', {})
-            dept = info.get('dept')
-            number = info.get('number')
-            section_code = info.get('section')
-            term = info.get('term', 'Unknown Term')
-            
-            if not dept or not number or not section_code:
-                continue
-            
-            course_id = f"{dept}-{number}"
-            
-            # Check if this exact section already exists
-            existing = session.exec(
-                select(Section).where(
-                    Section.course_id == course_id,
-                    Section.term == term,
-                    Section.section_code == section_code
+                # Update existing course
+                existing.title = course_info['title']
+                existing.description = course_info['courseDetails']
+                existing.credits = course_info['credits']
+                existing.prerequisites_raw = prereq_raw
+                existing.prerequisites_logic = prereq_logic
+                session.add(existing)
+                updated_count += 1
+            else:
+                # Create new course
+                new_course = Course(
+                    id=course_id,
+                    dept=dept,
+                    number=number,
+                    title=course_info['title'],
+                    description=course_info['courseDetails'],
+                    credits=course_info['credits'],
+                    prerequisites_raw=prereq_raw,
+                    prerequisites_logic=prereq_logic
                 )
-            ).first()
-            
-            if existing:
-                skipped_sections += 1
-                continue
-            
-            # Extract instructor (first instructor if multiple)
-            instructor_list = section_data.get('instructor', [])
-            instructor_name = None
-            if instructor_list and len(instructor_list) > 0:
-                instructor_name = instructor_list[0].get('name')
-            
-            # Extract schedule (meeting times)
-            schedule_json = []
-            for schedule in section_data.get('courseSchedule', []):
-                schedule_json.append({
-                    'days': schedule.get('days', ''),
-                    'start_time': schedule.get('startTime', ''),
-                    'end_time': schedule.get('endTime', ''),
-                    'campus': schedule.get('campus', ''),
-                    'type': schedule.get('sectionCode', 'LEC')
-                })
-            
-            # Extract enrollment data (if available from CourSys scraping)
-            enrollment = section_data.get('enrollment', {})
-            
-            # Create new Section record
-            new_section = Section(
-                course_id=course_id,
-                term=term,
-                section_code=section_code,
-                instructor=instructor_name,
-                schedule_json=schedule_json if schedule_json else None,
-                location=section_data.get('courseSchedule', [{}])[0].get('campus') if section_data.get('courseSchedule') else None,
-                delivery_method=info.get('deliveryMethod', 'In Person'),
-                seats_total=enrollment.get('seats_total', 0),
-                seats_enrolled=enrollment.get('seats_enrolled', 0),
-                waitlist_total=enrollment.get('waitlist_total', 0),
-                waitlist_enrolled=enrollment.get('waitlist_enrolled', 0)
-            )
-            
-            session.add(new_section)
-            added_sections += 1
-            
-            # Print progress every 100 sections
-            if added_sections % 100 == 0:
-                print(f"   Added {added_sections} sections...")
+                session.add(new_course)
+                added_count += 1
         
-        # Commit section insertions
         session.commit()
-        print(f"   ✅ Sections: {added_sections} added, {skipped_sections} skipped\n")
-    
-    
-    # 6. SUMMARY
-    # ===========
-    print("=" * 60)
-    print("🎉 DATABASE SEEDING COMPLETE!")
-    print("=" * 60)
-    print(f"📚 Courses:  {added_courses} added, {skipped_courses} already existed")
-    print(f"📖 Sections: {added_sections} added, {skipped_sections} already existed")
-    print(f"📊 Total unique courses: {len(unique_courses)}")
-    print(f"📊 Total sections: {len(courses_data)}")
-    print("=" * 60)
-    
-    # Print sample data
-    with Session(engine) as session:
-        sample_course = session.exec(select(Course).limit(1)).first()
-        if sample_course:
-            print("\n🔍 Sample Course:")
-            print(f"   ID: {sample_course.id}")
-            print(f"   Title: {sample_course.title}")
-            print(f"   Credits: {sample_course.credits}")
-            print(f"   Prerequisites: {sample_course.prerequisites_raw[:80] if sample_course.prerequisites_raw else 'None'}...")
-            print(f"   Sections: {len(sample_course.sections)}")
+        print(f"\n✅ Database seeded!")
+        print(f"   Added: {added_count} courses")
+        print(f"   Updated: {updated_count} courses")
 
 
 if __name__ == "__main__":

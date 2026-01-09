@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
 from database import create_db_and_tables
-from routers import courses
+from routers import courses, validation 
 
 # Configure logging
 logging.basicConfig(
@@ -46,7 +46,7 @@ def on_startup():
 
 # Include routers
 app.include_router(courses.router, prefix=settings.API_V1_PREFIX)
-
+app.include_router(validation.router, prefix=settings.API_V1_PREFIX)
 
 @app.get("/")
 async def root():
