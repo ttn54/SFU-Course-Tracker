@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
 from database import create_db_and_tables
-from routers import courses, validation, auth, user, watchers
+from routers import courses, validation, auth, user, watchers, prerequisites, professors
 from services.worker import start_worker, stop_worker
 
 # Configure logging
@@ -50,7 +50,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="Backend API for SFU Course Tracker with seat monitoring",
+    description="High-performance backend for SFU Course Scheduler with prerequisite validation and seat tracking",
     lifespan=lifespan
 )
 
@@ -69,6 +69,8 @@ app.include_router(user.router, prefix=settings.API_V1_PREFIX)
 app.include_router(courses.router, prefix=settings.API_V1_PREFIX)
 app.include_router(validation.router, prefix=settings.API_V1_PREFIX)
 app.include_router(watchers.router, prefix=settings.API_V1_PREFIX)
+app.include_router(prerequisites.router, prefix=settings.API_V1_PREFIX)
+app.include_router(professors.router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/")
