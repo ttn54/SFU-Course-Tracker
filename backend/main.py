@@ -1,16 +1,17 @@
 """
-FastAPI Application Entry Point - Day 3 Version
-
-For now, we only have courses router.
-We'll add other routers in later days.
+FastAPI Main Application for SFU Scheduler Backend.
 """
 import logging
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
 from database import create_db_and_tables
-from routers import courses, validation, auth, user
+from routers import courses, validation, auth, user, watchers
+from services.worker import start_worker, stop_worker
 
 # Configure logging
 logging.basicConfig(
@@ -20,11 +21,37 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    """
+    Application lifespan manager.
+    Handles startup and shutdown events.
+    """
+    # Startup
+    logger.info("Starting SFU Scheduler API...")
+    
+    # Create database tables
+    create_db_and_tables()
+    logger.info("Database tables created")
+    
+    # Start background worker
+    start_worker()
+    logger.info("Background worker started")
+    
+    yield
+    
+    # Shutdown
+    logger.info("Shutting down SFU Scheduler API...")
+    stop_worker()
+    logger.info("Background worker stopped")
+
+
 # Create FastAPI app
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="Backend API for SFU Course Tracker"
+    description="Backend API for SFU Course Tracker with seat monitoring",
+    lifespan=lifespan
 )
 
 # Configure CORS
@@ -36,19 +63,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Startup: Create database tables
-@app.on_event("startup")
-def on_startup():
-    logger.info("Starting SFU Scheduler API...")
-    create_db_and_tables()
-    logger.info("Database tables created")
-
-
 # Include routers
 app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
 app.include_router(user.router, prefix=settings.API_V1_PREFIX)
 app.include_router(courses.router, prefix=settings.API_V1_PREFIX)
 app.include_router(validation.router, prefix=settings.API_V1_PREFIX)
+app.include_router(watchers.router, prefix=settings.API_V1_PREFIX)
+
 
 @app.get("/")
 async def root():
@@ -77,5 +98,5 @@ if __name__ == "__main__":
         "main:app",
         host="0.0.0.0",
         port=8000,
-        reload=True  # Auto-reload for development
+        reload=settings.DEBUG
     )
