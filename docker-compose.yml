@@ -1,27 +1,20 @@
 version: '3.8'
 
 services:
-  # 1. Your Application
-  api:
-    build: .
+  backend:
+    build: ./backend
     ports:
-      - "3000:3000"
+      - "8000:8000"
     environment:
-      # This connects to the 'db' service below
-      - DATABASE_URL=postgresql://postgres:password@db:5432/sfu_tracker_docker?schema=public
-      - JWT_SECRET=super_secret_docker_key
-    depends_on:
-      - db
-
-  # 2. A Fresh Database (Just for Docker)
-  db:
-    image: postgres:15-alpine
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=sfu_tracker_docker
+      - DATABASE_URL=sqlite:///./sfu_scheduler.db
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./backend:/app
+    restart: unless-stopped
 
-volumes:
-  postgres_data:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
