@@ -4,7 +4,7 @@ import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS } from 'date-fns/locale/en-US';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { useCourseStore } from '../../stores/courseStore';
-import { CalendarEvent, CourseGroup, CourseSection } from '../../types';
+import type { CalendarEvent, CourseGroup, CourseSection } from '../../types';
 import { SectionSelectorModal } from '../CourseList/SectionSelectorModal';
 
 const locales = {

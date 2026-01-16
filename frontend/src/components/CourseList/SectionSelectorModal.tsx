@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CourseGroup, CourseSection } from '../../types';
+import type { CourseGroup, CourseSection } from '../../types';
 import { X } from 'lucide-react';
 import { api } from '../../services/api';
 

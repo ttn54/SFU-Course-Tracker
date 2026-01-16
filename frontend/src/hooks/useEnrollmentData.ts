@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../services/api';
-import { CourseSection } from '../types';
+import type { CourseSection } from '../types';
 
 interface EnrollmentData {
   [courseId: string]: {

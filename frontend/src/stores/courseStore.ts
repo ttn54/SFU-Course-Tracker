@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { CourseSection, CourseGroup } from '../types';
+import type { CourseSection, CourseGroup } from '../types';
 import { PrerequisiteParser } from '../utils/prerequisiteParser';
 import { generateCourseColor } from '../utils/colorGenerator';
 

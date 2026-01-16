@@ -32,6 +32,7 @@ export interface CourseGroup {
   sections: CourseSection[];
   isScheduled: boolean;
   scheduledSectionId?: string | null;
+  combinedSection?: CourseSection;
   offeringFrequency?: {
     label: string;
     color: string;

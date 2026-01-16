@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Trash2, MapPin } from 'lucide-react';
-import { CourseSection } from '../../types';
+import type { CourseSection } from '../../types';
 import { useCourseStore } from '../../stores/courseStore';
 import { useSingleEnrollment } from '../../hooks/useEnrollmentData';
 import { api } from '../../services/api';

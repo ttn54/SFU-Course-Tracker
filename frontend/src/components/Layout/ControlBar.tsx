@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, Search, Plus } from 'lucide-react';
 import { useCourseStore } from '../../stores/courseStore';
-import { CourseGroup } from '../../types';
+import type { CourseGroup } from '../../types';
 import { api } from '../../services/api';
 import { generateCourseColor } from '../../utils/colorGenerator';
 

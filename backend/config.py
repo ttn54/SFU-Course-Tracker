@@ -40,6 +40,11 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
     ]
     
+    # JWT Authentication
+    SECRET_KEY: str = "your-secret-key-change-this-in-production"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+    
     class Config:
         env_file = ".env"
         case_sensitive = True

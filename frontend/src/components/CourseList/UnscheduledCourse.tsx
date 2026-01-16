@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Trash2 } from 'lucide-react';
-import { CourseGroup } from '../../types';
+import type { CourseGroup } from '../../types';
 import { useCourseStore } from '../../stores/courseStore';
 
 interface UnscheduledCourseProps {

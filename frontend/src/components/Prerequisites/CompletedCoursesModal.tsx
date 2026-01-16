@@ -254,7 +254,7 @@ export const CompletedCoursesModal: React.FC<CompletedCoursesModalProps> = ({ is
       return false;
     };
     
-    const renderLogicNode = (node: any, depth: number = 0): JSX.Element | null => {
+    const renderLogicNode = (node: any, depth: number = 0): React.JSX.Element | null => {
       if (!node || !node.type) return null;
       
       // Skip UNKNOWN nodes
@@ -376,7 +376,7 @@ export const CompletedCoursesModal: React.FC<CompletedCoursesModalProps> = ({ is
     };
 
     // Helper to render a prerequisite node
-    const renderNode = (node: any, depth: number = 0): JSX.Element => {
+    const renderNode = (node: any, depth: number = 0): React.JSX.Element => {
       if (node.type === 'course') {
         const isCompleted = courses.includes(node.value);
         return (
