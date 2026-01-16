@@ -19,14 +19,14 @@ router = APIRouter(prefix="/courses", tags=["courses"])
 async def get_all_courses() -> list[dict[str, Any]]:
     """
     Get all available courses from the JSON file.
-    This endpoint reads directly from fall_2025_courses_with_enrollment.json
+    This endpoint reads directly from fall_2025_all_courses.json
     
     Example: GET /api/v1/courses/all
     
     Returns:
         List of all courses with their sections and enrollment data
     """
-    json_path = Path(__file__).parent.parent / "data" / "fall_2025_courses_with_enrollment.json"
+    json_path = Path(__file__).parent.parent / "data" / "fall_2025_all_courses.json"
     
     if not json_path.exists():
         raise HTTPException(

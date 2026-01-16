@@ -5,19 +5,93 @@ import type { CourseGroup } from '../../types';
 import { api } from '../../services/api';
 import { generateCourseColor } from '../../utils/colorGenerator';
 
-// Static department list for now
-const departments = [
-  'CMPT - Computing Science',
-  'MATH - Mathematics',
-  'MACM - Mathematics and Computing Science',
-  'STAT - Statistics'
-];
+// Department name mapping
+const DEPT_NAMES: Record<string, string> = {
+ 'ALS': 'Applied and Liberal Studies',
+  'APMA': 'Applied Mathematics',
+  'ARCH': 'Architecture',
+  'BISC': 'Biological Sciences',
+  'BPK': 'Biomedical Physiology and Kinesiology',
+  'BUS': 'Business Administration',
+  'CA': 'Contemporary Arts',
+  'CENV': 'Centre for Environmental Assessment',
+  'CHEM': 'Chemistry',
+  'CHIN': 'Chinese',
+  'CMNS': 'Communication',
+  'CMPT': 'Computing Science',
+  'COGS': 'Cognitive Science',
+  'CRIM': 'Criminology',
+  'DATA': 'Data Science',
+  'DMED': 'Digital Media',
+  'EASC': 'Earth Sciences',
+  'ECON': 'Economics',
+  'EDUC': 'Education',
+  'ENGL': 'English',
+  'ENSC': 'Engineering Science',
+  'EVSC': 'Environmental Science',
+  'FAL': 'Fine and Applied Arts',
+  'FAN': 'First Nations Studies',
+  'FASS': 'Faculty of Arts and Social Sciences',
+  'FEP': 'Field Experience Program',
+  'FREN': 'French',
+  'GA': 'Gender, Sexuality, and Women\'s Studies',
+  'GEOG': 'Geography',
+  'GERM': 'German',
+  'GERO': 'Gerontology',
+  'GRAD': 'Graduate Studies',
+  'GRK': 'Greek',
+  'GSWS': 'Gender, Sexuality, and Women\'s Studies',
+  'HIST': 'History',
+  'HSCI': 'Health Sciences',
+  'HUM': 'Humanities',
+  'IAT': 'Interactive Arts and Technology',
+  'INDG': 'Indigenous Studies',
+  'INLG': 'International Languages',
+  'INS': 'International Studies',
+  'IS': 'International Studies',
+  'ITAL': 'Italian',
+  'JAPN': 'Japanese',
+  'LBRL': 'Liberal Studies',
+  'LBST': 'Liberal Studies',
+  'LING': 'Linguistics',
+  'LS': 'Labour Studies',
+  'MACM': 'Mathematics and Computing Science',
+  'MASC': 'Mathematics and Statistics',
+  'MATH': 'Mathematics',
+  'MBB': 'Molecular Biology and Biochemistry',
+  'MSE': 'Mechatronic Systems Engineering',
+  'NEUR': 'Neuroscience',
+  'NUSC': 'Nuclear Science',
+  'ONC': 'Online Learning',
+  'PHIL': 'Philosophy',
+  'PHYS': 'Physics',
+  'PLAN': 'Urban Studies and Planning',
+  'PLCY': 'Public Policy',
+  'POL': 'Political Science',
+  'PORT': 'Portuguese',
+  'PSYC': 'Psychology',
+  'PUB': 'Public Policy',
+  'PUNJ': 'Punjabi',
+  'REM': 'Resource and Environmental Management',
+  'RISK': 'Risk Management',
+  'SA': 'Study Abroad',
+  'SCI': 'Science',
+  'SD': 'Sustainable Development',
+  'SDA': 'Sustainable Development',
+  'SEE': 'Software Engineering',
+  'SPAN': 'Spanish',
+  'STAT': 'Statistics',
+  'TEKX': 'Technical Studies',
+  'URB': 'Urban Studies',
+  'WL': 'World Literature'
+};
 
 const terms = ['Fall 2025', 'Spring 2026', 'Summer 2026'];
 
 export const ControlBar: React.FC = () => {
   const [selectedTerm, setSelectedTerm] = useState('Fall 2025');
-  const [selectedDept, setSelectedDept] = useState('CMPT - Computing Science');
+  const [selectedDept, setSelectedDept] = useState('CMPT');
+  const [departments, setDepartments] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<CourseGroup | null>(null);
@@ -25,6 +99,22 @@ export const ControlBar: React.FC = () => {
   
   const addCourseGroup = useCourseStore((state) => state.addCourseGroup);
   const courseGroups = useCourseStore((state) => state.courseGroups);
+
+  // Fetch departments on mount
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const depts = await api.getDepartments();
+        setDepartments(depts);
+        if (depts.length > 0 && !depts.includes(selectedDept)) {
+          setSelectedDept(depts[0]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch departments:', error);
+      }
+    };
+    fetchDepartments();
+  }, []);
 
   // Fetch all courses from backend on mount
   useEffect(() => {
@@ -91,7 +181,7 @@ export const ControlBar: React.FC = () => {
               avgGrade: 'N/A',
               textbookISBN: 'None'
             },
-            color: generateCourseColor(courseKey) // Generate unique color per course
+            color: generateCourseColor(courseKey)
           };
           
           if (!courseMap.has(courseKey)) {
@@ -116,18 +206,15 @@ export const ControlBar: React.FC = () => {
     };
 
     fetchCourses();
-  }, []); // Only fetch once on mount
+  }, []);
 
   // Filter available courses based on search query, selected department, and what's not already added
   const availableCourses = allCourses.filter(course => {
     const isAlreadyAdded = courseGroups.some(g => g.courseKey === course.courseKey);
     if (isAlreadyAdded) return false;
     
-    // Extract department code from selected department (e.g., "CMPT - Computing Science" -> "CMPT")
-    const selectedDeptCode = selectedDept.split(' - ')[0];
-    
-    // Filter by department first
-    if (course.dept !== selectedDeptCode) return false;
+    // Filter by department
+    if (course.dept !== selectedDept) return false;
     
     if (!searchQuery) return false;
     
@@ -147,7 +234,6 @@ export const ControlBar: React.FC = () => {
 
   const handleAddCourse = async () => {
     if (selectedCourse) {
-      // Add as unscheduled
       const result = await addCourseGroup({
         ...selectedCourse,
         isScheduled: false,
@@ -167,13 +253,11 @@ export const ControlBar: React.FC = () => {
   return (
     <div className="w-full bg-dark-card border-b border-gray-700 px-6 py-4">
       <div className="flex items-center space-x-4">
-        {/* Filter Button */}
         <button className="flex items-center space-x-2 px-4 py-2 border border-gray-600 rounded-lg hover:bg-dark-card-hover transition-colors">
           <Filter size={18} />
           <span className="text-sm">Filter</span>
         </button>
 
-        {/* Term Selector */}
         <select
           value={selectedTerm}
           onChange={(e) => setSelectedTerm(e.target.value)}
@@ -186,7 +270,6 @@ export const ControlBar: React.FC = () => {
           ))}
         </select>
 
-        {/* Department Selector */}
         <select
           value={selectedDept}
           onChange={(e) => setSelectedDept(e.target.value)}
@@ -194,12 +277,11 @@ export const ControlBar: React.FC = () => {
         >
           {departments.map((dept) => (
             <option key={dept} value={dept}>
-              {dept}
+              {dept} - {DEPT_NAMES[dept] || dept}
             </option>
           ))}
         </select>
 
-        {/* Search Input with Suggestions */}
         <div className="flex-1 relative">
           <div className="flex items-center space-x-2">
             <div className="relative flex-1">
@@ -219,7 +301,6 @@ export const ControlBar: React.FC = () => {
                 className="w-full pl-10 pr-4 py-2 bg-dark-bg border border-gray-600 rounded-lg text-sm hover:border-gray-500 focus:outline-none focus:border-sfu-red transition-colors"
               />
               
-              {/* Suggestions Dropdown */}
               {showSuggestions && availableCourses.length > 0 && (
                 <div 
                   className="absolute top-full left-0 right-0 mt-2 bg-dark-card border border-gray-600 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto"
@@ -233,7 +314,8 @@ export const ControlBar: React.FC = () => {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                        <div className="font-semibold text-sm text-white">{course.dept} {course.number} - {course.title}</div>                          <div className="flex items-center gap-2 mt-1">
+                          <div className="font-semibold text-sm text-white">{course.dept} {course.number} - {course.title}</div>
+                          <div className="flex items-center gap-2 mt-1">
                             {course.offeringFrequency && (
                               <span className={`text-xs px-2 py-1 rounded ${course.offeringFrequency.color} text-white`}>
                                 {course.offeringFrequency.label}
@@ -258,7 +340,6 @@ export const ControlBar: React.FC = () => {
               )}
             </div>
             
-            {/* Add Button */}
             <button 
               onClick={handleAddCourse}
               disabled={!selectedCourse}

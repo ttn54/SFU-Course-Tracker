@@ -65,7 +65,7 @@ def main():
     SQLModel.metadata.create_all(engine)
     
     # Load course data
-    json_path = Path(__file__).parent / "data" / "fall_2025_courses_with_enrollment.json"
+    json_path = Path(__file__).parent / "data" / "fall_2025_all_courses.json"
     with open(json_path, 'r') as f:
         courses_data = json.load(f)
     
