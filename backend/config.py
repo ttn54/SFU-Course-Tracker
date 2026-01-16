@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     SEAT_CHECK_INTERVAL_MINUTES: int = 10
     
     # CORS (comma-separated string in .env)
-    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173"
+    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173,https://sfu-course-tracker.vercel.app,https://sfu-course-tracker-git-main-zen-nguyens-projects.vercel.app,https://sfu-course-tracker-3wtnfwqi3-zen-nguyens-projects.vercel.app"
     
     # JWT Authentication
     SECRET_KEY: str = "your-secret-key-change-this-in-production"
