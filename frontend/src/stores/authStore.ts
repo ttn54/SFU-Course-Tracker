@@ -5,7 +5,7 @@ import { useCourseStore } from './courseStore';
 // Helper to load completed courses
 const loadCompletedCourses = async (token: string) => {
   try {
-    const response = await fetch('http://localhost:8000/api/v1/user/me', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/user/me`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }

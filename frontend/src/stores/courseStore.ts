@@ -39,7 +39,7 @@ const saveScheduleToBackend = async (userId: string | null, courseGroups: Course
   if (!token) return;
   
   try {
-    await fetch('http://localhost:8000/api/v1/user/schedule', {
+    await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/user/schedule`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -101,7 +101,7 @@ export const useCourseStore = create<CourseStore>()(
     if (!token) return;
     
     try {
-      const response = await fetch('http://localhost:8000/api/v1/user/schedule', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/user/schedule`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -260,7 +260,7 @@ export const useCourseStore = create<CourseStore>()(
     // Fallback to backend API
     if (token) {
       try {
-        const response = await fetch('http://localhost:8000/api/v1/validate/prereqs', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/validate/prereqs`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
