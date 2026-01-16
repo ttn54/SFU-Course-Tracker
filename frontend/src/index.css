@@ -94,8 +94,26 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-gray-500;
 }
+/* Fix dropdown option text color */
+select option {
+  background-color: #2d2d2d;
+  color: white;
+}
 
+select {
+  color: white;
+}
 /* Smooth transitions */
 * {
   @apply transition-colors duration-200;
+}
+
+/* Dropdown select styling */
+select {
+  color: white;
+}
+
+select option {
+  background-color: #2d2d2d;
+  color: white;
 }

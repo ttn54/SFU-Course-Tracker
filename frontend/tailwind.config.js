@@ -10,8 +10,8 @@ export default {
       colors: {
         'sfu-red': '#A6192E',
         'dark-bg': '#1a1a1a',
-        'dark-card': '#1f2937',
-        'dark-card-hover': '#374151',
+        'dark-card': '#2d2d2d',
+        'dark-card-hover': '#3a3a3a',
         'lecture-purple': '#5B2C6F',
         'lab-green': '#00703c',
         'accent-blue': '#4A90E2',

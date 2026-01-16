@@ -233,8 +233,7 @@ export const ControlBar: React.FC = () => {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <div className="font-semibold text-sm">{course.dept} {course.number} - {course.title}</div>
-                          <div className="flex items-center gap-2 mt-1">
+                        <div className="font-semibold text-sm text-white">{course.dept} {course.number} - {course.title}</div>                          <div className="flex items-center gap-2 mt-1">
                             {course.offeringFrequency && (
                               <span className={`text-xs px-2 py-1 rounded ${course.offeringFrequency.color} text-white`}>
                                 {course.offeringFrequency.label}
