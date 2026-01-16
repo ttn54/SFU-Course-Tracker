@@ -18,7 +18,8 @@ export const AuthPage: React.FC = () => {
 
     try {
       const endpoint = isLogin ? '/api/v1/auth/login' : '/api/v1/auth/register';
-      const response = await fetch(`http://localhost:8000${endpoint}`, {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+      const response = await fetch(`${API_URL.replace('/api/v1', '')}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })

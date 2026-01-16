@@ -44,7 +44,8 @@ export const CompletedCoursesModal: React.FC<CompletedCoursesModalProps> = ({ is
 
   const fetchAllCourses = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/courses/all');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+      const response = await fetch(`${API_URL}/courses/all`);
       
       if (response.ok) {
         const rawCourses = await response.json();
@@ -87,7 +88,8 @@ export const CompletedCoursesModal: React.FC<CompletedCoursesModalProps> = ({ is
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/v1/validate/suggest-next', {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+      const response = await fetch(`${API_URL}/validate/suggest-next`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -169,7 +171,8 @@ export const CompletedCoursesModal: React.FC<CompletedCoursesModalProps> = ({ is
     const token = localStorage.getItem('token');
     if (token) {
       try {
-        const response = await fetch('http://localhost:8000/api/v1/user/courses', {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+        const response = await fetch(`${API_URL}/user/courses`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
