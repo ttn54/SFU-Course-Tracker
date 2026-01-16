@@ -1,48 +1,19 @@
-# --- Stage 1: The Builder ---
 FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-COPY frontend/package*.json ./
-COPY frontend/tsconfig.json ./
-COPY prisma ./prisma/
-
+COPY package*.json ./
 RUN npm install
-RUN npx prisma generate
 
-COPY frontend/ .
+# Build with environment variables
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
+COPY . .
 RUN npm run build
 
-# --- Stage 2: The Runner ---
-FROM node:18-alpine AS runner
-
-WORKDIR /app
-
-ENV NODE_ENV=production
-
-# Install OpenSSH and set the password for root user
-RUN apk add openssh \
-    && echo "root:Docker!" | chpasswd \
-    && chmod +x /usr/sbin/sshd
-
-# Copy the sshd_config file to enable SSH
-COPY frontend/sshd_config /etc/ssh/
-
-# Copy initialization script
-COPY frontend/init.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/init.sh
-
-COPY frontend/package*.json ./
-COPY prisma ./prisma/
-
-RUN npm ci --only=production
-RUN npx prisma generate
-
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/public ./public
-
-# Expose both app and SSH ports
-EXPOSE 8000 2222
-
-# Start both SSH and the app
-CMD ["/usr/local/bin/init.sh"]
+# Production with nginx
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
