@@ -12,7 +12,10 @@ services:
     restart: unless-stopped
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=http://100.53.18.140:8000
     ports:
       - "3000:80"
     depends_on:
