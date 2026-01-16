@@ -15,7 +15,15 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # Check if repo exists, if not clone it
+            if [ ! -d ~/SFU-Course-Tracker/.git ]; then
+              rm -rf ~/SFU-Course-Tracker
+              git clone https://github.com/ttn54/SFU-Course-Tracker.git ~/SFU-Course-Tracker
+            fi
+            
             cd ~/SFU-Course-Tracker
+            git fetch origin
+            git reset --hard origin/main
             git pull origin main
             docker compose down
             docker compose up -d --build
