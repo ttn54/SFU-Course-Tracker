@@ -5,11 +5,11 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-COPY . .
-
 # Build with environment variables
 ARG VITE_API_URL
-RUN echo "VITE_API_URL=${VITE_API_URL}" > .env.production
+ENV VITE_API_URL=$VITE_API_URL
+
+COPY . .
 RUN npm run build
 
 # Production with nginx
