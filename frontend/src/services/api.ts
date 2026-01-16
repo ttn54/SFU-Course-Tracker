@@ -104,7 +104,7 @@ export const api = {
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(courses)
+        body: JSON.stringify({ completedCourses: courses })
       }
     );
     if (!response.ok) throw new Error('Failed to fetch batch enrollment');
