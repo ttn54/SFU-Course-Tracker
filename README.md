@@ -1,302 +1,413 @@
-# 🎓 SFU Course Prerequisite Tracker
+# 🎓 SFU Course Tracker
 
-**🌐 Live Demo:** [https://sfu-course-tracker-zen.azurewebsites.net](https://sfu-course-tracker-zen.azurewebsites.net)
+**🌐 Live Demo:** [sfucourseplanner.me](https://www.sfucourseplanner.me) | [sfu-course-tracker.vercel.app](https://sfu-course-tracker.vercel.app)
 
-A full-stack web application that helps Simon Fraser University (SFU) CS students track their completed courses and discover which courses they're eligible to take next based on prerequisite requirements.
+A full-stack web application for Simon Fraser University students to search, filter, and track course availability across **all 76 departments** with real-time data from official SFU APIs.
 
-## 🚀 Features
+## ✨ Features
 
-- **User Authentication**: Secure registration and login with JWT tokens
-- **Course Management**: View all available CMPT courses with their prerequisites
-- **Progress Tracking**: Mark courses as completed and save your academic progress
-- **Smart Eligibility Detection**: Automatically calculates which courses you can take based on:
-  - AND prerequisites (must complete all required courses)
-  - OR prerequisites (must complete at least one course from each group)
-- **Responsive Design**: Clean, modern UI that works on desktop and mobile devices
+- 🔍 **Comprehensive Search**: Browse 3000+ courses across all 76 SFU departments
+- 📊 **Real-time Data**: Course information fetched directly from official SFU APIs
+- 🎯 **Smart Filtering**: Filter by department, course level, and availability
+- 📱 **Responsive Design**: Seamless experience on desktop, tablet, and mobile
+- 🔐 **User Authentication**: Secure JWT-based registration and login
+- 📈 **Course Details**: View prerequisites, schedules, and enrollment info
+- 🔔 **Seat Tracking**: Monitor course availability with watcher notifications
 
 ## 🛠️ Tech Stack
 
-### Backend
-- **Node.js** with **Express.js** - RESTful API server
-- **TypeScript** - Type-safe development
-- **Prisma ORM** - Database modeling and migrations
-- **PostgreSQL** - Relational database
-- **JWT** - Secure authentication
-- **bcrypt** - Password hashing
-
 ### Frontend
-- **Vanilla JavaScript** - No framework dependencies
-- **HTML5 & CSS3** - Responsive design with modern styling
+- **React** with **TypeScript**
+- **Vite** - Lightning-fast build tool
+- **CSS3** - Modern responsive styling
+- **Deployed on Vercel** with automatic SSL
+- **Custom Domain**: sfucourseplanner.me (Namecheap)
 
-## ☁️ Deployment
+### Backend
+- **FastAPI** (Python 3.12) - High-performance async API
+- **SQLite** with **SQLAlchemy ORM**
+- **JWT Authentication** with bcrypt password hashing
+- **Nginx** - Reverse proxy with Let's Encrypt SSL
+- **Deployed on AWS EC2** with Docker
+- **API Domain**: api.sfucourseplanner.me
 
-This application is deployed on **Microsoft Azure** using:
-- **Azure App Service** - Hosts the containerized application
-- **Azure Container Registry** - Stores Docker images
-- **Azure Database for PostgreSQL** - Managed database service
-- **GitHub Actions** - CI/CD pipeline for automated deployments
-
-### Local Development with Docker
-
-Run the application locally using Docker Compose:
-
-```bash
-docker-compose up
-```
-
-This will start:
-- The Node.js API server on port 8000
-- A PostgreSQL database with persistent storage
-
-To stop the containers:
-
-```bash
-docker-compose down
-```
-
-To remove volumes (reset database):
-
-```bash
-docker-compose down -v
-```
-
-## 📋 Prerequisites
-
-Before running this project, make sure you have:
-
-- **Node.js** (v16 or higher)
-- **PostgreSQL** (v12 or higher)
-- **npm** or **yarn**
-
-## 🔧 Installation & Setup
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/ttn54/SFU-Course-Tracker.git
-cd SFU-Course-Tracker
-```
-
-### 2. Install Dependencies
-
-```bash
-npm install
-```
-
-### 3. Set Up Environment Variables
-
-Create a `.env` file in the root directory:
-
-```env
-DATABASE_URL="postgresql://username:password@localhost:5432/sfu_tracker?schema=public"
-JWT_SECRET="your-super-secret-jwt-key"
-PORT=3000
-```
-
-Replace `username` and `password` with your PostgreSQL credentials.
-
-### 4. Set Up the Database
-
-Create the database:
-
-```bash
-createdb sfu_tracker
-```
-
-Run Prisma migrations:
-
-```bash
-npx prisma migrate dev
-```
-
-### 5. Seed the Database
-
-Populate the database with course data:
-
-```bash
-npm run seed
-```
-
-### 6. Start the Development Server
-
-```bash
-npm run dev
-```
-
-The application will be available at `http://localhost:3000`
-
-## 📚 API Documentation
-
-### Authentication Endpoints
-
-#### Register a New User
-```http
-POST /auth/register
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "password": "yourpassword"
-}
-```
-
-#### Login
-```http
-POST /auth/login
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "password": "yourpassword"
-}
-```
-
-**Response:**
-```json
-{
-  "token": "jwt-token-here"
-}
-```
-
-### User Endpoints
-
-#### Get Current User Profile
-```http
-GET /api/user/me
-Authorization: Bearer YOUR_JWT_TOKEN
-```
-
-#### Update Completed Courses
-```http
-PUT /api/user/courses
-Authorization: Bearer YOUR_JWT_TOKEN
-Content-Type: application/json
-
-{
-  "completedCourses": ["CMPT 120", "CMPT 125", "MACM 101"]
-}
-```
-
-### Course Endpoints
-
-#### Get All Courses
-```http
-GET /api/courses
-```
-
-#### Get Eligible Courses
-```http
-GET /api/courses/eligible
-Authorization: Bearer YOUR_JWT_TOKEN
-```
-
-## 🗄️ Database Schema
-
-### User Model
-```prisma
-model User {
-  id               Int      @id @default(autoincrement())
-  email            String   @unique
-  password         String
-  completedCourses String[]
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-}
-```
-
-### Course Model
-```prisma
-model Course {
-  id              Int      @id @default(autoincrement())
-  code            String   @unique
-  name            String
-  prerequisites   String[]  // AND prerequisites
-  prerequisitesOr String[]  // OR prerequisites (groups separated by |)
-}
-```
-
-## 🧮 Prerequisite Logic
-
-The eligibility algorithm handles complex prerequisite requirements:
-
-1. **AND Prerequisites**: All courses in the `prerequisites` array must be completed
-2. **OR Prerequisites**: For each group in `prerequisitesOr`, at least one course from that group must be completed
-
-**Example:** CMPT 295 requires:
-- `prerequisites: ["MACM 101"]` - Must complete MACM 101
-- `prerequisitesOr: ["CMPT 125|CMPT 128", "CMPT 127|CMPT 129"]` - Must complete (CMPT 125 OR 128) AND (CMPT 127 OR 129)
+### Infrastructure
+- **Docker & Docker Compose** - Containerized deployment
+- **GitHub Actions** - CI/CD pipeline
+- **Let's Encrypt** - Free SSL certificates
+- **Persistent Volumes** - Database preservation across deployments
 
 ## 📁 Project Structure
 
 ```
 SFU-Course-Tracker/
+├── backend/
+│   ├── main.py                  # FastAPI application
+│   ├── config.py                # Configuration & settings
+│   ├── database.py              # Database connection
+│   ├── models.py                # SQLAlchemy models
+│   ├── requirements.txt         # Python dependencies
+│   ├── Dockerfile              # Backend container
+│   ├── routers/                # API endpoints
+│   │   ├── auth.py             # Authentication routes
+│   │   ├── courses.py          # Course endpoints
+│   │   ├── user.py             # User management
+│   │   ├── watchers.py         # Seat tracking
+│   │   └── prerequisites.py    # Prerequisite logic
+│   ├── crawler/                # SFU API client
+│   │   ├── sfu_api_client.py
+│   │   └── test_crawler.py     # Data fetching script
+│   ├── services/               # Background workers
+│   │   └── worker.py           # Seat checking scheduler
+│   └── data/
+│       └── fall_2025_all_courses.json  # 76 departments
+├── frontend/
+│   ├── src/
+│   │   ├── components/         # React components
+│   │   │   ├── Layout/
+│   │   │   │   ├── ControlBar.tsx  # Search & filters
+│   │   │   │   └── CourseList.tsx  # Course display
+│   │   │   └── Auth/
+│   │   ├── services/           # API client
+│   │   │   └── api.ts
+│   │   └── types/              # TypeScript definitions
+│   ├── public/
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── Dockerfile
 ├── prisma/
-│   ├── schema.prisma           # Database schema
-│   ├── seed.ts                 # Seed data
-│   └── migrations/             # Database migrations
-├── src/
-│   ├── server.ts               # Express server setup
-│   ├── controllers/            # Request handlers
-│   │   ├── authController.ts
-│   │   ├── userController.ts
-│   │   └── courseController.ts
-│   ├── routes/                 # API routes
-│   │   ├── authRoutes.ts
-│   │   ├── userRoutes.ts
-│   │   └── courseRoutes.ts
-│   ├── middleware/
-│   │   └── auth.ts             # JWT authentication
-│   └── utils/
-│       └── prisma.ts           # Prisma client
-├── public/                     # Frontend files
-│   ├── index.html
-│   ├── styles.css
-│   └── app.js
-├── .env                        # Environment variables
-├── package.json
-└── tsconfig.json
+│   └── schema.prisma           # Database schema
+├── docker-compose.yml          # Container orchestration
+└── README.md
 ```
 
-## 🚦 Available Scripts
+## 🚀 Quick Start
 
-- `npm run dev` - Start development server with hot reload
-- `npm run seed` - Seed the database with course data
-- `npx prisma studio` - Open Prisma Studio (database GUI)
-- `npx prisma migrate dev` - Create and apply migrations
+### Prerequisites
+- Node.js 18+
+- Python 3.12+
+- Docker & Docker Compose (recommended)
 
-## 🔒 Security Features
+### Local Development with Docker (Recommended)
 
-- Passwords are hashed using **bcrypt** before storage
-- JWT tokens for stateless authentication
-- Protected routes with middleware authentication
-- Input validation on all endpoints
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yourusername/SFU-Course-Tracker.git
+   cd SFU-Course-Tracker
+   ```
 
-## 🎯 Future Enhancements
+2. **Start all services:**
+   ```bash
+   docker compose up -d
+   ```
 
-- [ ] Add more SFU departments (MATH, MACM, STAT, etc.)
-- [ ] Course recommendation system
-- [ ] Degree progress tracking
-- [ ] Export academic plan to PDF
-- [ ] Integration with SFU's official course catalog API
+3. **Access the application:**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+   - API Docs: http://localhost:8000/docs
+
+### Manual Setup
+
+#### Backend
+
+1. **Navigate to backend:**
+   ```bash
+   cd backend
+   ```
+
+2. **Create virtual environment:**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Windows: venv\Scripts\activate
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Create `.env` file:**
+   ```env
+   DATABASE_URL=sqlite:///./data/sfu_scheduler.db
+   SECRET_KEY=your-secret-key-change-in-production
+   ALGORITHM=HS256
+   ACCESS_TOKEN_EXPIRE_MINUTES=1440
+   ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+   ```
+
+5. **Run backend:**
+   ```bash
+   python main.py
+   ```
+
+#### Frontend
+
+1. **Navigate to frontend:**
+   ```bash
+   cd frontend
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Create `.env` file:**
+   ```env
+   VITE_API_URL=http://localhost:8000/api/v1
+   ```
+
+4. **Start dev server:**
+   ```bash
+   npm run dev
+   ```
+
+## 🌐 Production Deployment
+
+### Architecture Overview
+```
+[User Browser]
+     ↓
+[Vercel Frontend] → https://sfucourseplanner.me
+     ↓ HTTPS
+[AWS EC2 + Nginx] → https://api.sfucourseplanner.me
+     ↓
+[Docker: FastAPI + SQLite]
+```
+
+### Backend Deployment (AWS EC2)
+
+1. **Launch EC2 instance:**
+   - Ubuntu 22.04 LTS
+   - t2.micro or larger
+   - Security Groups: Allow ports 80, 443, 8000, 22
+
+2. **Install dependencies:**
+   ```bash
+   sudo apt update
+   sudo apt install docker.io docker-compose nginx certbot python3-certbot-nginx -y
+   ```
+
+3. **Clone repository:**
+   ```bash
+   git clone https://github.com/yourusername/SFU-Course-Tracker.git
+   cd SFU-Course-Tracker
+   ```
+
+4. **Configure Nginx:**
+   ```bash
+   sudo nano /etc/nginx/sites-available/default
+   ```
+   ```nginx
+   server {
+       listen 80;
+       server_name api.sfucourseplanner.me;
+       
+       location / {
+           proxy_pass http://localhost:8000;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       }
+   }
+   ```
+
+5. **Get SSL certificate:**
+   ```bash
+   sudo certbot --nginx -d api.sfucourseplanner.me
+   ```
+
+6. **Update `.env` with production values**
+
+7. **Deploy with Docker:**
+   ```bash
+   docker compose up -d --build
+   ```
+
+### Frontend Deployment (Vercel)
+
+1. **Install Vercel CLI:**
+   ```bash
+   npm i -g vercel
+   ```
+
+2. **Deploy:**
+   ```bash
+   cd frontend
+   vercel --prod
+   ```
+
+3. **Set environment variables in Vercel Dashboard:**
+   - Variable: `VITE_API_URL`
+   - Value: `https://api.sfucourseplanner.me/api/v1`
+
+4. **Add custom domain:**
+   - Go to Vercel Dashboard → Project → Settings → Domains
+   - Add: `sfucourseplanner.me` and `www.sfucourseplanner.me`
+   - Update DNS in Namecheap as shown by Vercel
+
+## 🗄️ Database Schema
+
+### Models
+
+**User**
+- `id`: Integer (Primary Key)
+- `email`: String (Unique)
+- `password`: String (Hashed)
+- `completed_courses`: JSON Array
+- `created_at`: DateTime
+- `updated_at`: DateTime
+
+**Course**
+- `id`: Integer (Primary Key)
+- `dept`: String (e.g., "CMPT")
+- `number`: String (e.g., "225")
+- `title`: String
+- `credits`: Integer
+- `prerequisites`: String (JSON)
+
+**Section**
+- `id`: Integer (Primary Key)
+- `course_id`: Foreign Key → Course
+- `section_code`: String
+- `instructor`: String
+- `schedule`: String
+- `enrollment_total`: Integer
+- `enrollment_cap`: Integer
+
+**Watcher**
+- `id`: Integer (Primary Key)
+- `user_id`: Foreign Key → User
+- `section_id`: Foreign Key → Section
+- `created_at`: DateTime
+
+## 📊 API Documentation
+
+Interactive API docs available at:
+- **Local**: http://localhost:8000/docs
+- **Production**: https://api.sfucourseplanner.me/docs
+
+### Key Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/auth/register` | Register new user |
+| POST | `/api/v1/auth/login` | Login and get JWT token |
+| GET | `/api/v1/courses` | Get all courses (with filters) |
+| GET | `/api/v1/departments` | Get all 76 departments |
+| GET | `/api/v1/user/me` | Get current user profile |
+| PUT | `/api/v1/user/courses` | Update completed courses |
+| POST | `/api/v1/watchers` | Add course watcher |
+| GET | `/api/v1/watchers` | Get user's watchers |
+
+## 🔄 Data Sources
+
+Course data is fetched from official SFU APIs:
+- **Course Outlines API**: `https://www.sfu.ca/bin/wcm/course-outlines`
+- **Student Portal**: `https://courses.students.sfu.ca`
+
+### Update Course Data
+
+```bash
+cd backend/crawler
+python test_crawler.py
+```
+
+This will fetch latest course data for all 76 departments.
+
+## 🔐 Environment Variables
+
+### Backend (`.env`)
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DATABASE_URL` | SQLite database path | `sqlite:///./data/sfu_scheduler.db` |
+| `SECRET_KEY` | JWT secret (CHANGE IN PROD!) | - |
+| `ALGORITHM` | JWT algorithm | `HS256` |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Token expiry (minutes) | `1440` |
+| `ALLOWED_ORIGINS` | CORS origins (comma-separated) | - |
+
+### Frontend (`.env`)
+| Variable | Description |
+|----------|-------------|
+| `VITE_API_URL` | Backend API URL |
+
+## 🧪 Testing
+
+```bash
+# Backend tests
+cd backend
+pytest
+
+# Frontend tests
+cd frontend
+npm test
+```
+
+## 📦 Docker Configuration
+
+### Database Persistence
+
+Database is persisted using Docker volumes to survive container restarts:
+
+```yaml
+volumes:
+  - ./backend_data:/app/data  # Database files
+  - ./backend:/app            # Source code (dev only)
+```
+
+### Rebuilding Containers
+
+```bash
+# Rebuild and restart
+docker compose up -d --build
+
+# View logs
+docker compose logs -f backend
+
+# Stop all services
+docker compose down
+```
+
+## 🗺️ Roadmap
+
+- [x] All 76 SFU departments
+- [x] User authentication
+- [x] Course search & filtering
+- [x] Custom domain with SSL
+- [x] Persistent database
+- [ ] Email notifications for seat availability
+- [ ] Course comparison tool
+- [ ] Visual schedule builder
+- [ ] RateMyProfessor integration
+- [ ] Export schedule to calendar (ICS)
+- [ ] Mobile app (React Native)
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
 ## 📝 License
 
-ISC
-
-## 👤 Author
-
-**ttn54**
-- GitHub: [@ttn54](https://github.com/ttn54)
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 🙏 Acknowledgments
 
-- Course data based on SFU's Computing Science program requirements
-- Built as a portfolio project
+- Simon Fraser University for providing public course APIs
+- FastAPI and React communities for excellent documentation
+- Vercel and AWS for reliable hosting infrastructure
+
+## 📧 Contact
+
+For questions, issues, or suggestions, please:
+- Open an issue on GitHub
+- Visit the live site: [sfucourseplanner.me](https://www.sfucourseplanner.me)
 
 ---
 
-**Note:** This is an independent project and is not officially affiliated with Simon Fraser University.
+**Built with ❤️ for SFU students by students**
