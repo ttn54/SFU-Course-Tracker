@@ -116,16 +116,11 @@ export const ControlBar: React.FC = () => {
     fetchDepartments();
   }, []);
 
-  // Fetch all courses from backend when term changes
+  // Fetch all courses from backend on mount
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        // Parse term like "Spring 2026" into term="spring" and year="2026"
-        const [termName, yearStr] = selectedTerm.split(' ');
-        const term = termName.toLowerCase();
-        const year = yearStr;
-        
-        const rawCourses = await api.getAllCourses(term, year);
+        const rawCourses = await api.getAllCourses();
         
         // Group courses by dept + number (multiple sections → 1 course group)
         const courseMap = new Map<string, any>();
@@ -211,7 +206,7 @@ export const ControlBar: React.FC = () => {
     };
 
     fetchCourses();
-  }, [selectedTerm]);
+  }, []);
 
   // Filter available courses based on search query, selected department, and what's not already added
   const availableCourses = allCourses.filter(course => {

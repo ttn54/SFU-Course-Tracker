@@ -4,42 +4,29 @@ Fetches ALL SFU courses from ALL departments and saves them to JSON
 """
 from sfu_api_client import SFUAPIClient, save_courses_to_json
 import os
-import argparse
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Crawl SFU course data')
-    parser.add_argument('--year', type=str, default=None, help='Year (e.g., 2026)')
-    parser.add_argument('--term', type=str, default=None, help='Term (spring, summer, fall)')
-    args = parser.parse_args()
-    
     os.makedirs('../data', exist_ok=True)
     
     client = SFUAPIClient(rate_limit_delay=0.3)
     
-    # If user specified year and term, use those
-    if args.year and args.term:
-        YEAR = args.year
-        TERM = args.term
-        print(f"🎯 Using specified term: {TERM.upper()} {YEAR}\n")
-    else:
-        # Auto-discover available terms
-        print("🔍 Discovering available terms...\n")
-        
-        available_data = []
-        for year in ["2026", "2025", "2024", "2023"]:
-            terms = client.get_terms(year)
-            if terms:
-                print(f"✅ {year}: {', '.join(terms)}")
-                available_data.append((year, terms[0]))
-            else:
-                print(f"❌ {year}: No data")
-        
-        if not available_data:
-            print("\n❌ No available data found!")
-            return
-        
-        YEAR, TERM = available_data[0]
+    print("🔍 Discovering available terms...\n")
+    
+    available_data = []
+    for year in ["2025", "2024", "2023"]:
+        terms = client.get_terms(year)
+        if terms:
+            print(f"✅ {year}: {', '.join(terms)}")
+            available_data.append((year, terms[0]))
+        else:
+            print(f"❌ {year}: No data")
+    
+    if not available_data:
+        print("\n❌ No available data found!")
+        return
+    
+    YEAR, TERM = available_data[0]
     
     # Get ALL departments instead of hardcoding
     print(f"\n🔍 Fetching all departments for {TERM} {YEAR}...")

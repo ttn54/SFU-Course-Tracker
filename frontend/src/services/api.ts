@@ -27,8 +27,8 @@ export interface APICourse {
 
 export const api = {
   // Get all courses from the backend
-  async getAllCourses(term: string = 'fall', year: string = '2025'): Promise<APICourse[]> {
-    const response = await fetch(`${API_BASE_URL}/courses/all?term=${term}&year=${year}`);
+  async getAllCourses(): Promise<APICourse[]> {
+    const response = await fetch(`${API_BASE_URL}/courses/all`);
     if (!response.ok) throw new Error('Failed to fetch all courses');
     return response.json();
   },

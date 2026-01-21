@@ -44,10 +44,11 @@ export const CompletedCoursesModal: React.FC<CompletedCoursesModalProps> = ({ is
 
   const fetchAllCourses = async () => {
     try {
-      // Default to fall 2025 for completed courses modal
-      const rawCourses = await api.getAllCourses('fall', '2025');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+      const response = await fetch(`${API_URL}/courses/all`);
       
-      if (rawCourses) {
+      if (response.ok) {
+        const rawCourses = await response.json();
         
         // Deduplicate by course_id (since API returns all sections)
         const uniqueCourses = new Map<string, any>();

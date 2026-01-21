@@ -16,29 +16,23 @@ router = APIRouter(prefix="/courses", tags=["courses"])
 
 
 @router.get("/all")
-async def get_all_courses(
-    term: Optional[str] = Query("fall", description="Term (spring, summer, fall)"),
-    year: Optional[str] = Query("2025", description="Year (e.g., 2025, 2026)")
-) -> list[dict[str, Any]]:
+async def get_all_courses() -> list[dict[str, Any]]:
     """
     Get all available courses from the JSON file.
+    This endpoint reads directly from fall_2025_all_courses.json
     
-    Example: GET /api/v1/courses/all?term=spring&year=2026
+    Example: GET /api/v1/courses/all
     
     Returns:
         List of all courses with their sections and enrollment data
     """
-    filename = f"{term}_{year}_all_courses.json"
-    json_path = Path(__file__).parent.parent / "data" / filename
+    json_path = Path(__file__).parent.parent / "data" / "fall_2025_all_courses.json"
     
-    # Fallback to fall 2025 if requested file doesn't exist
     if not json_path.exists():
-        json_path = Path(__file__).parent.parent / "data" / "fall_2025_all_courses.json"
-        if not json_path.exists():
-            raise HTTPException(
-                status_code=404,
-                detail=f"Course data file not found for {term} {year}"
-            )
+        raise HTTPException(
+            status_code=404,
+            detail="Course data file not found"
+        )
     
     with open(json_path, 'r', encoding='utf-8') as f:
         courses = json.load(f)
