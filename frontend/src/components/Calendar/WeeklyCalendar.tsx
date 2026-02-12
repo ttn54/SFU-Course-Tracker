@@ -109,6 +109,30 @@ export const WeeklyCalendar: React.FC = () => {
     }
   };
 
+  // Touch event handlers for mobile
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const groupData = sessionStorage.getItem('draggedCourse');
+    
+    if (groupData) {
+      const group: CourseGroup = JSON.parse(groupData);
+      setPendingCourseGroup(group);
+      sessionStorage.removeItem('draggedCourse');
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleTouchCancel = () => {
+    setIsDragOver(false);
+    sessionStorage.removeItem('draggedCourse');
+  };
+
   const handleSelectSection = (section: CourseSection) => {
     if (pendingCourseGroup) {
       const result = scheduleSection(pendingCourseGroup.courseKey, section.id, section);
@@ -136,6 +160,9 @@ export const WeeklyCalendar: React.FC = () => {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onTouchEnd={handleTouchEnd}
+        onTouchMove={handleTouchMove}
+        onTouchCancel={handleTouchCancel}
         style={{ overflow: 'hidden' }}
       >
         <Calendar

@@ -24,6 +24,18 @@ export const UnscheduledCourse: React.FC<UnscheduledCourseProps> = ({ group, onD
     setIsDragging(false);
   };
 
+  // Touch event handlers for mobile
+  const handleTouchStart = () => {
+    setIsDragging(true);
+    // Store in session storage for touch events
+    sessionStorage.setItem('draggedCourse', JSON.stringify(group));
+    onDragStart(group);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
   // Count total sections
   const inPersonCount = group.sections.filter(s => s.section.includes('D')).length;
   const remoteCount = group.sections.filter(s => !s.section.includes('D')).length;
@@ -33,6 +45,8 @@ export const UnscheduledCourse: React.FC<UnscheduledCourseProps> = ({ group, onD
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       className={`bg-dark-card border border-gray-700 rounded-lg p-3 cursor-move hover:border-gray-500 transition-all ${
         isDragging ? 'opacity-50' : ''
       }`}
