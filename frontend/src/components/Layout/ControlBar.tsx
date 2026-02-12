@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Filter, Search, Plus } from 'lucide-react';
+import { Filter, Search, Plus, X } from 'lucide-react';
 import { useCourseStore } from '../../stores/courseStore';
 import type { CourseGroup } from '../../types';
 import { api } from '../../services/api';
@@ -86,16 +86,24 @@ const DEPT_NAMES: Record<string, string> = {
   'WL': 'World Literature'
 };
 
-const terms = ['Fall 2025', 'Spring 2026', 'Summer 2026'];
+const terms = ['Spring 2026', 'Summer 2026'];
 
 export const ControlBar: React.FC = () => {
-  const [selectedTerm, setSelectedTerm] = useState('Fall 2025');
+  const [selectedTerm, setSelectedTerm] = useState('Spring 2026');
   const [selectedDept, setSelectedDept] = useState('CMPT');
   const [departments, setDepartments] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<CourseGroup | null>(null);
   const [allCourses, setAllCourses] = useState<CourseGroup[]>([]);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [filters, setFilters] = useState({
+    hasSeats: false,
+    noWaitlist: false,
+    minCredits: '',
+    maxCredits: '',
+    onlyUpperDiv: false,
+  });
   
   const addCourseGroup = useCourseStore((state) => state.addCourseGroup);
   const courseGroups = useCourseStore((state) => state.courseGroups);
@@ -256,12 +264,16 @@ export const ControlBar: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-dark-card border-b border-gray-700 px-6 py-4">
-      <div className="flex items-center space-x-4">
-        <button className="flex items-center space-x-2 px-4 py-2 border border-gray-600 rounded-lg hover:bg-dark-card-hover transition-colors">
-          <Filter size={18} />
-          <span className="text-sm">Filter</span>
-        </button>
+    <>
+      <div className="w-full bg-dark-card border-b border-gray-700 px-6 py-4">
+        <div className="flex items-center space-x-4">
+          <button 
+            onClick={() => setShowFilterModal(true)}
+            className="flex items-center space-x-2 px-4 py-2 border border-gray-600 rounded-lg hover:bg-dark-card-hover transition-colors"
+          >
+            <Filter size={18} />
+            <span className="text-sm">Filter</span>
+          </button>
 
         <select
           value={selectedTerm}
@@ -361,5 +373,94 @@ export const ControlBar: React.FC = () => {
         </div>
       </div>
     </div>
+
+    {showFilterModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowFilterModal(false)}>
+        <div className="bg-dark-card border border-gray-600 rounded-lg p-6 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-semibold text-white flex items-center space-x-2">
+              <Filter size={24} />
+              <span>Filter Courses</span>
+            </h3>
+            <button onClick={() => setShowFilterModal(false)} className="p-2 hover:bg-gray-700 rounded transition-colors">
+              <X size={20} />
+            </button>
+          </div>
+          
+          <div className="space-y-4">
+            <label className="flex items-center justify-between p-3 bg-dark-bg rounded-lg border border-gray-700 hover:border-gray-600 cursor-pointer">
+              <span className="text-sm text-gray-300">Only courses with available seats</span>
+              <input 
+                type="checkbox" 
+                checked={filters.hasSeats}
+                onChange={(e) => setFilters({...filters, hasSeats: e.target.checked})}
+                className="w-4 h-4" 
+              />
+            </label>
+            
+            <label className="flex items-center justify-between p-3 bg-dark-bg rounded-lg border border-gray-700 hover:border-gray-600 cursor-pointer">
+              <span className="text-sm text-gray-300">No waitlist</span>
+              <input 
+                type="checkbox" 
+                checked={filters.noWaitlist}
+                onChange={(e) => setFilters({...filters, noWaitlist: e.target.checked})}
+                className="w-4 h-4" 
+              />
+            </label>
+            
+            <label className="flex items-center justify-between p-3 bg-dark-bg rounded-lg border border-gray-700 hover:border-gray-600 cursor-pointer">
+              <span className="text-sm text-gray-300">Only upper division (300+)</span>
+              <input 
+                type="checkbox" 
+                checked={filters.onlyUpperDiv}
+                onChange={(e) => setFilters({...filters, onlyUpperDiv: e.target.checked})}
+                className="w-4 h-4" 
+              />
+            </label>
+            
+            <div className="space-y-2">
+              <label className="block text-sm text-gray-400">Credits Range</label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="number"
+                  placeholder="Min"
+                  value={filters.minCredits}
+                  onChange={(e) => setFilters({...filters, minCredits: e.target.value})}
+                  className="flex-1 px-3 py-2 bg-dark-bg border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-sfu-red"
+                />
+                <span className="text-gray-400">to</span>
+                <input
+                  type="number"
+                  placeholder="Max"
+                  value={filters.maxCredits}
+                  onChange={(e) => setFilters({...filters, maxCredits: e.target.value})}
+                  className="flex-1 px-3 py-2 bg-dark-bg border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-sfu-red"
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2 pt-4">
+              <button
+                onClick={() => setFilters({hasSeats: false, noWaitlist: false, minCredits: '', maxCredits: '', onlyUpperDiv: false})}
+                className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-sm font-medium"
+              >
+                Clear Filters
+              </button>
+              <button
+                onClick={() => setShowFilterModal(false)}
+                className="flex-1 px-4 py-2 bg-sfu-red hover:bg-red-800 rounded-lg transition-colors text-sm font-medium"
+              >
+                Apply
+              </button>
+            </div>
+            
+            <p className="text-xs text-gray-500 text-center pt-2">
+              {Object.values(filters).some(v => v) ? 'Filters are active' : 'No filters applied'}
+            </p>
+          </div>
+        </div>
+      </div>
+    )}
+  </>
   );
 };
