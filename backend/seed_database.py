@@ -34,7 +34,7 @@ def clean_prerequisite(prereq_text: str) -> str:
     return prereq_text.strip()
 
 
-def fetch_prerequisite(dept: str, number: str, term: str = '2025fa') -> str:
+def fetch_prerequisite(dept: str, number: str, term: str = '2026sp') -> str:
     """Fetch prerequisite from CourSys."""
     url = f'https://coursys.sfu.ca/browse/info/{term}-{dept.lower()}-{number.lower()}-d1?data=yes'
     
@@ -65,7 +65,7 @@ def main():
     SQLModel.metadata.create_all(engine)
     
     # Load course data
-    json_path = Path(__file__).parent / "data" / "fall_2025_all_courses.json"
+    json_path = Path(__file__).parent / "data" / "spring_2026_all_courses.json"
     with open(json_path, 'r') as f:
         courses_data = json.load(f)
     

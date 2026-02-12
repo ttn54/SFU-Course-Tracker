@@ -17,8 +17,8 @@ router = APIRouter(prefix="/courses", tags=["courses"])
 
 @router.get("/all")
 async def get_all_courses(
-    term: Optional[str] = Query("fall", description="Term (spring, summer, fall)"),
-    year: Optional[str] = Query("2025", description="Year (e.g., 2025, 2026)")
+    term: Optional[str] = Query("spring", description="Term (spring, summer, fall)"),
+    year: Optional[str] = Query("2026", description="Year (e.g., 2025, 2026)")
 ) -> list[dict[str, Any]]:
     """
     Get all available courses from the JSON file.
@@ -31,9 +31,9 @@ async def get_all_courses(
     filename = f"{term}_{year}_all_courses.json"
     json_path = Path(__file__).parent.parent / "data" / filename
     
-    # Fallback to fall 2025 if requested file doesn't exist
+    # Fallback to spring 2026 if requested file doesn't exist
     if not json_path.exists():
-        json_path = Path(__file__).parent.parent / "data" / "fall_2025_all_courses.json"
+        json_path = Path(__file__).parent.parent / "data" / "spring_2026_all_courses.json"
         if not json_path.exists():
             raise HTTPException(
                 status_code=404,
@@ -206,12 +206,12 @@ async def get_live_enrollment(
     dept: str,
     number: str,
     section: str,
-    term: Optional[str] = Query("2025/fall", description="Term in format YYYY/season")
+    term: Optional[str] = Query("2026/spring", description="Term in format YYYY/season")
 ) -> dict[str, Any]:
     """
     Fetch live enrollment data from CourSys in real-time.
     
-    Example: GET /api/v1/courses/enrollment/CMPT/354/D100?term=2025/fall
+    Example: GET /api/v1/courses/enrollment/CMPT/354/D100?term=2026/spring
     
     Returns:
         {
@@ -245,12 +245,12 @@ async def get_live_enrollment(
 @router.post("/enrollment/batch")
 async def get_batch_enrollment(
     courses: list[dict[str, str]] = Body(..., description="List of course sections"),
-    term: Optional[str] = Query("2025/fall", description="Term in format YYYY/season")
+    term: Optional[str] = Query("2026/spring", description="Term in format YYYY/season")
 ) -> list[dict[str, Any]]:
     """
     Fetch live enrollment data for multiple courses at once.
     
-    Example: POST /api/v1/courses/enrollment/batch?term=2025/fall
+    Example: POST /api/v1/courses/enrollment/batch?term=2026/spring
     Body: [
         {"dept": "CMPT", "number": "354", "section": "D100"},
         {"dept": "CMPT", "number": "120", "section": "D100"}
