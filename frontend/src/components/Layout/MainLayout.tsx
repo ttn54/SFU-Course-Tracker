@@ -64,18 +64,21 @@ export const MainLayout: React.FC = () => {
   }, [isResizing]);
 
   return (
-    <div className="h-screen flex flex-col bg-dark-bg">
+    <div className={`${isMobile ? 'min-h-screen' : 'h-screen'} flex flex-col bg-dark-bg`}>
       {/* Header */}
       <GlobalHeader />
       
       {/* Control Bar */}
       <ControlBar />
       
-      {/* Main Content: Resizable 2-Column Layout (Desktop) / Stacked Layout (Mobile) */}
-      <div ref={containerRef} className={`flex-1 overflow-hidden relative ${isMobile ? 'flex flex-col' : 'flex'}`}>
+      {/* Main Content: Resizable 2-Column Layout (Desktop) / Single Column (Mobile) */}
+      <div
+        ref={containerRef}
+        className={`flex-1 relative ${isMobile ? 'flex flex-col gap-3 p-2 overflow-y-auto' : 'flex overflow-hidden'}`}
+      >
         {/* Calendar Section */}
         <div 
-          className={`${isMobile ? 'h-1/2 border-b' : 'flex-1 border-r'} border-gray-700 overflow-hidden`}
+          className={`${isMobile ? 'min-h-[520px] rounded-lg border' : 'flex-1 border-r'} border-gray-700 overflow-hidden bg-dark-bg`}
           style={isMobile ? {} : { width: `calc(100% - ${rightPanelWidth}px)` }}
         >
           <WeeklyCalendar />
@@ -99,7 +102,7 @@ export const MainLayout: React.FC = () => {
         
         {/* Course List Section */}
         <div 
-          className={`flex flex-col overflow-hidden ${isMobile ? 'h-1/2' : ''}`}
+          className={`flex flex-col overflow-hidden ${isMobile ? 'min-h-[460px] rounded-lg border border-gray-700 bg-dark-bg' : ''}`}
           style={isMobile ? {} : { width: `${rightPanelWidth}px`, flexShrink: 0 }}
         >
           <div className="flex-1 overflow-hidden">

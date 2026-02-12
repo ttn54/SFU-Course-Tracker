@@ -175,6 +175,7 @@ export const WeeklyCalendar: React.FC = () => {
           views={['work_week']}
           step={30}
           timeslots={2}
+          scrollToTime={new Date(2024, 0, 1, 8, 0, 0)}
           min={new Date(2024, 0, 1, 8, 0, 0)}
           max={new Date(2024, 0, 1, 21, 0, 0)}
           eventPropGetter={eventStyleGetter}

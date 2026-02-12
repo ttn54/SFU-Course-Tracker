@@ -30,16 +30,16 @@ export const FooterActionBar: React.FC = () => {
   };
 
   return (
-    <div className="sticky bottom-0 bg-dark-card border-t border-gray-700 px-4 py-3 shadow-2xl">
-      <div className="flex items-center justify-between">
+    <div className="md:sticky md:bottom-0 bg-dark-card border-t border-gray-700 px-3 sm:px-4 py-3 shadow-2xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {/* Left: Total Credits */}
-        <div className="flex items-center space-x-4">
-          <div className="text-sm">
+        <div className="flex items-center space-x-3 sm:space-x-4">
+          <div className="text-xs sm:text-sm">
             <span className="text-gray-400">Courses:</span>
             <span className="ml-2 font-semibold text-white">{courseCount}</span>
           </div>
           <div className="h-6 w-px bg-gray-600" />
-          <div className="text-sm">
+          <div className="text-xs sm:text-sm">
             <span className="text-gray-400">Total Credits:</span>
             <span className="ml-2 font-semibold text-white">{totalCredits}</span>
           </div>
@@ -51,10 +51,10 @@ export const FooterActionBar: React.FC = () => {
         </div>
 
         {/* Right: Action Buttons */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 self-end sm:self-auto">
           <button 
             onClick={handleExport}
-            className="flex items-center space-x-2 px-4 py-2 bg-sfu-red hover:bg-red-800 rounded-lg transition-colors text-sm font-medium"
+            className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-sfu-red hover:bg-red-800 rounded-lg transition-colors text-xs sm:text-sm font-medium"
             title="Export schedule as JSON"
           >
             <Download size={16} />
@@ -63,7 +63,7 @@ export const FooterActionBar: React.FC = () => {
           
           <button 
             onClick={handleClearAll}
-            className="flex items-center space-x-2 px-4 py-2 bg-red-700 hover:bg-red-800 rounded-lg transition-colors text-sm font-medium"
+            className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-red-700 hover:bg-red-800 rounded-lg transition-colors text-xs sm:text-sm font-medium"
             title="Clear all courses"
           >
             <Trash2 size={16} />
