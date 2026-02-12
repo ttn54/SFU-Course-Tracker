@@ -8,7 +8,19 @@ import { FooterActionBar } from './FooterActionBar';
 export const MainLayout: React.FC = () => {
   const [rightPanelWidth, setRightPanelWidth] = useState(400);
   const [isResizing, setIsResizing] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -59,34 +71,36 @@ export const MainLayout: React.FC = () => {
       {/* Control Bar */}
       <ControlBar />
       
-      {/* Main Content: Resizable 2-Column Layout */}
-      <div ref={containerRef} className="flex-1 flex overflow-hidden relative">
-        {/* Left Column: Calendar */}
+      {/* Main Content: Resizable 2-Column Layout (Desktop) / Stacked Layout (Mobile) */}
+      <div ref={containerRef} className={`flex-1 overflow-hidden relative ${isMobile ? 'flex flex-col' : 'flex'}`}>
+        {/* Calendar Section */}
         <div 
-          className="flex-1 border-r border-gray-700 overflow-hidden"
-          style={{ width: `calc(100% - ${rightPanelWidth}px)` }}
+          className={`${isMobile ? 'h-1/2 border-b' : 'flex-1 border-r'} border-gray-700 overflow-hidden`}
+          style={isMobile ? {} : { width: `calc(100% - ${rightPanelWidth}px)` }}
         >
           <WeeklyCalendar />
         </div>
         
-        {/* Resize Handle */}
-        <div
-          onMouseDown={handleMouseDown}
-          className={`w-1 bg-gray-700 hover:bg-sfu-red cursor-col-resize transition-colors relative group ${
-            isResizing ? 'bg-sfu-red' : ''
-          }`}
-          style={{ flexShrink: 0 }}
-        >
-          {/* Visual indicator on hover */}
-          <div className="absolute inset-y-0 -left-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <div className="h-full w-3 bg-sfu-red/20"></div>
+        {/* Resize Handle - Desktop Only */}
+        {!isMobile && (
+          <div
+            onMouseDown={handleMouseDown}
+            className={`w-1 bg-gray-700 hover:bg-sfu-red cursor-col-resize transition-colors relative group ${
+              isResizing ? 'bg-sfu-red' : ''
+            }`}
+            style={{ flexShrink: 0 }}
+          >
+            {/* Visual indicator on hover */}
+            <div className="absolute inset-y-0 -left-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="h-full w-3 bg-sfu-red/20"></div>
+            </div>
           </div>
-        </div>
+        )}
         
-        {/* Right Column: Course List */}
+        {/* Course List Section */}
         <div 
-          className="flex flex-col overflow-hidden"
-          style={{ width: `${rightPanelWidth}px`, flexShrink: 0 }}
+          className={`flex flex-col overflow-hidden ${isMobile ? 'h-1/2' : ''}`}
+          style={isMobile ? {} : { width: `${rightPanelWidth}px`, flexShrink: 0 }}
         >
           <div className="flex-1 overflow-hidden">
             <CourseList />

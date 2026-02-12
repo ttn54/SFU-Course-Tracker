@@ -265,32 +265,34 @@ export const ControlBar: React.FC = () => {
 
   return (
     <>
-      <div className="w-full bg-dark-card border-b border-gray-700 px-6 py-4">
-        <div className="flex items-center space-x-4">
-          <button 
-            onClick={() => setShowFilterModal(true)}
-            className="flex items-center space-x-2 px-4 py-2 border border-gray-600 rounded-lg hover:bg-dark-card-hover transition-colors"
-          >
-            <Filter size={18} />
-            <span className="text-sm">Filter</span>
-          </button>
+      <div className="w-full bg-dark-card border-b border-gray-700 px-3 sm:px-6 py-3 sm:py-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <button 
+              onClick={() => setShowFilterModal(true)}
+              className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-gray-600 rounded-lg hover:bg-dark-card-hover transition-colors whitespace-nowrap"
+            >
+              <Filter size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <span className="text-xs sm:text-sm">Filter</span>
+            </button>
 
-        <select
-          value={selectedTerm}
-          onChange={(e) => setSelectedTerm(e.target.value)}
-          className="px-4 py-2 bg-dark-bg border border-gray-600 rounded-lg text-sm hover:border-gray-500 focus:outline-none focus:border-sfu-red transition-colors"
-        >
-          {terms.map((term) => (
-            <option key={term} value={term}>
-              {term}
-            </option>
-          ))}
-        </select>
+            <select
+              value={selectedTerm}
+              onChange={(e) => setSelectedTerm(e.target.value)}
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-dark-bg border border-gray-600 rounded-lg text-xs sm:text-sm hover:border-gray-500 focus:outline-none focus:border-sfu-red transition-colors"
+            >
+              {terms.map((term) => (
+                <option key={term} value={term}>
+                  {term}
+                </option>
+              ))}
+            </select>
+          </div>
 
         <select
           value={selectedDept}
           onChange={(e) => setSelectedDept(e.target.value)}
-          className="px-4 py-2 bg-dark-bg border border-gray-600 rounded-lg text-sm hover:border-gray-500 focus:outline-none focus:border-sfu-red transition-colors min-w-[250px]"
+          className="px-3 sm:px-4 py-2 bg-dark-bg border border-gray-600 rounded-lg text-xs sm:text-sm hover:border-gray-500 focus:outline-none focus:border-sfu-red transition-colors w-full sm:min-w-[250px]"
         >
           {departments.map((dept) => (
             <option key={dept} value={dept}>
@@ -299,11 +301,11 @@ export const ControlBar: React.FC = () => {
           ))}
         </select>
 
-        <div className="flex-1 relative">
+        <div className="flex-1 relative w-full sm:w-auto">
           <div className="flex items-center space-x-2">
             <div className="relative flex-1">
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                <Search size={18} />
+                <Search size={16} className="sm:w-[18px] sm:h-[18px]" />
               </div>
               <input
                 type="text"
@@ -315,7 +317,7 @@ export const ControlBar: React.FC = () => {
                   setShowSuggestions(e.target.value.length > 0);
                 }}
                 onFocus={() => searchQuery && setShowSuggestions(true)}
-                className="w-full pl-10 pr-4 py-2 bg-dark-bg border border-gray-600 rounded-lg text-sm hover:border-gray-500 focus:outline-none focus:border-sfu-red transition-colors"
+                className="w-full pl-9 sm:pl-10 pr-4 py-2 bg-dark-bg border border-gray-600 rounded-lg text-xs sm:text-sm hover:border-gray-500 focus:outline-none focus:border-sfu-red transition-colors"
               />
               
               {showSuggestions && availableCourses.length > 0 && (
@@ -360,14 +362,14 @@ export const ControlBar: React.FC = () => {
             <button 
               onClick={handleAddCourse}
               disabled={!selectedCourse}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
                 selectedCourse 
                   ? 'bg-sfu-red hover:bg-red-800 cursor-pointer' 
                   : 'bg-gray-600 cursor-not-allowed opacity-50'
               }`}
             >
-              <Plus size={18} />
-              <span className="text-sm font-semibold">Add</span>
+              <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <span className="text-xs sm:text-sm font-semibold">Add</span>
             </button>
           </div>
         </div>
