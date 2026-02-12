@@ -62,6 +62,10 @@ export const GlobalHeader: React.FC = () => {
         onClose={() => setShowCompletedModal(false)} 
       />
 
+<<<<<<< HEAD
+=======
+      {/* Info Modal */}
+>>>>>>> 2e23994ec15f435229ed96a6369f9f40839d0d9b
       {showInfoModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowInfoModal(false)}>
           <div className="bg-dark-card border border-gray-600 rounded-lg p-6 max-w-2xl w-full mx-4" onClick={(e) => e.stopPropagation()}>
@@ -93,6 +97,10 @@ export const GlobalHeader: React.FC = () => {
         </div>
       )}
 
+<<<<<<< HEAD
+=======
+      {/* Help Modal */}
+>>>>>>> 2e23994ec15f435229ed96a6369f9f40839d0d9b
       {showHelpModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowHelpModal(false)}>
           <div className="bg-dark-card border border-gray-600 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
@@ -131,6 +139,10 @@ export const GlobalHeader: React.FC = () => {
         </div>
       )}
 
+<<<<<<< HEAD
+=======
+      {/* Settings Modal */}
+>>>>>>> 2e23994ec15f435229ed96a6369f9f40839d0d9b
       {showSettingsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowSettingsModal(false)}>
           <div className="bg-dark-card border border-gray-600 rounded-lg p-6 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
