@@ -25,5 +25,10 @@ jobs:
             git fetch origin
             git reset --hard origin/main
             git pull origin main
+            
+            # Clear build cache
+            rm -rf frontend/node_modules/.vite frontend/dist
+            
             docker compose down
-            docker compose up -d --build
+            docker compose build --no-cache
+            docker compose up -d
