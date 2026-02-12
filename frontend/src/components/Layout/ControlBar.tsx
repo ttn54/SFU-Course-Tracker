@@ -374,20 +374,17 @@ export const ControlBar: React.FC = () => {
       </div>
     </div>
 
-<<<<<<< HEAD
-=======
     {/* Filter Modal */}
->>>>>>> 2e23994ec15f435229ed96a6369f9f40839d0d9b
     {showFilterModal && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowFilterModal(false)}>
-        <div className="bg-dark-card border border-gray-600 rounded-lg p-6 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4" onClick={() => setShowFilterModal(false)}>
+        <div className="bg-dark-card border border-gray-600 rounded-lg p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-white flex items-center space-x-2">
-              <Filter size={24} />
-              <span>Filter Courses</span>
+            <h3 className="text-lg sm:text-xl font-semibold text-white flex items-center space-x-2">
+              <Filter size={20} className="sm:w-6 sm:h-6" />
+              <span className="text-base sm:text-xl">Filter Courses</span>
             </h3>
-            <button onClick={() => setShowFilterModal(false)} className="p-2 hover:bg-gray-700 rounded transition-colors">
-              <X size={20} />
+            <button onClick={() => setShowFilterModal(false)} className="p-1.5 sm:p-2 hover:bg-gray-700 rounded transition-colors flex-shrink-0">
+              <X size={18} className="sm:w-5 sm:h-5" />
             </button>
           </div>
           
