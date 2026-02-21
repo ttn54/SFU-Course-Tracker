@@ -14,7 +14,12 @@ A full-stack web application for Simon Fraser University students to search, fil
 - 📈 **Course Details**: View prerequisites, schedules, and enrollment info
 - 🔔 **Seat Tracking**: Monitor course availability with watcher notifications
 
-## 🛠️ Tech Stack
+## � Documentation
+
+- **[System Diagrams](DIAGRAMS.md)** - UML diagrams, ERD, architecture, and sequence diagrams
+- **[API Documentation](https://api.sfucourseplanner.me/docs)** - Interactive Swagger/OpenAPI docs
+
+## �🛠️ Tech Stack
 
 ### Frontend
 - **React** with **TypeScript**

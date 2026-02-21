@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, CheckCircle } from 'lucide-react';
+import { X, Plus, Trash2, CheckCircle, Search } from 'lucide-react';
 import { useCourseStore } from '../../stores/courseStore';
 import { PrerequisiteParser } from '../../utils/prerequisiteParser';
 
@@ -28,6 +28,7 @@ export const CompletedCoursesModal: React.FC<CompletedCoursesModalProps> = ({ is
   const [allCourses, setAllCourses] = useState<{course_id: string, title: string}[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [eligibleSearchQuery, setEligibleSearchQuery] = useState('');
 
   useEffect(() => {
     setCourses([...completedCourses]);
@@ -95,7 +96,7 @@ export const CompletedCoursesModal: React.FC<CompletedCoursesModalProps> = ({ is
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ transcript: completedCourses, limit: 100 })
+        body: JSON.stringify({ transcript: completedCourses, limit: 5000 })
       });
 
       if (response.ok) {
@@ -172,13 +173,15 @@ export const CompletedCoursesModal: React.FC<CompletedCoursesModalProps> = ({ is
     if (token) {
       try {
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+        console.log('Saving to:', `${API_URL}/user/courses`);
+        console.log('Payload:', { completed_courses: courses });
         const response = await fetch(`${API_URL}/user/courses`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify(courses)
+          body: JSON.stringify({ completed_courses: courses })
         });
         
         if (response.ok) {
@@ -187,7 +190,7 @@ export const CompletedCoursesModal: React.FC<CompletedCoursesModalProps> = ({ is
           setTimeout(() => setSaveMessage(null), 3000);
         } else {
           const errorText = await response.text();
-          console.error('Save failed:', response.status, errorText);
+          console.error('Save failed:', response.status, errorText, 'URL:', `${API_URL}/user/courses`);
           setSaveMessage(`✗ Failed to save (${response.status})`);
         }
       } catch (error) {
@@ -583,6 +586,39 @@ export const CompletedCoursesModal: React.FC<CompletedCoursesModalProps> = ({ is
                 Based on your completed courses, here are the courses you're eligible to take:
               </p>
 
+              {/* Search Bar for Eligible Courses */}
+              {!loadingEligible && eligibleCourses.length > 0 && (
+                <div className="relative mb-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={18} />
+                    <input
+                      type="text"
+                      value={eligibleSearchQuery}
+                      onChange={(e) => setEligibleSearchQuery(e.target.value)}
+                      placeholder="Search by course code or title..."
+                      className="w-full pl-10 pr-4 py-2 bg-dark-bg border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-sfu-red transition-colors"
+                    />
+                    {eligibleSearchQuery && (
+                      <button
+                        onClick={() => setEligibleSearchQuery('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                  {eligibleSearchQuery && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      Showing {eligibleCourses.filter(course => {
+                        const query = eligibleSearchQuery.toLowerCase();
+                        return course.courseKey.toLowerCase().includes(query) ||
+                               course.title.toLowerCase().includes(query);
+                      }).length} of {eligibleCourses.length} courses
+                    </p>
+                  )}
+                </div>
+              )}
+
               {loadingEligible ? (
                 <div className="text-center py-8 text-gray-400">
                   Loading eligible courses...
@@ -595,7 +631,14 @@ export const CompletedCoursesModal: React.FC<CompletedCoursesModalProps> = ({ is
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-4">
-                  {eligibleCourses.map((course) => {
+                  {eligibleCourses
+                    .filter(course => {
+                      if (!eligibleSearchQuery) return true;
+                      const query = eligibleSearchQuery.toLowerCase();
+                      return course.courseKey.toLowerCase().includes(query) ||
+                             course.title.toLowerCase().includes(query);
+                    })
+                    .map((course) => {
                     const status = getCourseStatus(course);
                     return (
                       <div
@@ -633,6 +676,16 @@ export const CompletedCoursesModal: React.FC<CompletedCoursesModalProps> = ({ is
                       </div>
                     );
                   })}
+                  {eligibleCourses.filter(course => {
+                    if (!eligibleSearchQuery) return true;
+                    const query = eligibleSearchQuery.toLowerCase();
+                    return course.courseKey.toLowerCase().includes(query) ||
+                           course.title.toLowerCase().includes(query);
+                  }).length === 0 && eligibleSearchQuery && (
+                    <div className="text-center py-8 text-gray-500 col-span-1">
+                      No courses found matching "{eligibleSearchQuery}"
+                    </div>
+                  )}
                 </div>
               )}
             </>

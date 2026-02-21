@@ -4,12 +4,17 @@ Handles user profile and course completion tracking.
 """
 from typing import Any
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlmodel import Session
+from pydantic import BaseModel
 
 from database import get_session
 from models import User
 from routers.auth import get_current_user_id
+
+
+class UpdateCoursesRequest(BaseModel):
+    completed_courses: list[str]
 
 router = APIRouter(prefix="/user", tags=["user"])
 
@@ -96,7 +101,7 @@ async def get_schedule(
 
 @router.put("/courses")
 async def update_completed_courses(
-    completed_courses: list[str],
+    request: UpdateCoursesRequest,
     user_id: int = Depends(get_current_user_id),
     session: Session = Depends(get_session)
 ) -> dict[str, Any]:
@@ -108,7 +113,7 @@ async def update_completed_courses(
     PUT /api/user/courses
     Authorization: Bearer <token>
     {
-        "completedCourses": ["CMPT 120", "CMPT 125", "MACM 101"]
+        "completed_courses": ["CMPT-120", "CMPT-125", "MACM-101"]
     }
     ```
     """
@@ -117,7 +122,7 @@ async def update_completed_courses(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    user.completed_courses = completed_courses
+    user.completed_courses = request.completed_courses
     session.add(user)
     session.commit()
     session.refresh(user)
