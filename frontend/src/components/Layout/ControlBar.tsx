@@ -447,7 +447,7 @@ export const ControlBar: React.FC = () => {
             
             <div className="flex items-center space-x-2 pt-4">
               <button
-                onClick={() => setFilters({campus: '', wqb: '', courseLevel: ''})}
+                onClick={() => setFilters({campus: '', courseLevel: ''})}
                 className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-sm font-medium"
               >
                 Clear Filters

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Info, HelpCircle, CheckCircle, Settings, LogOut, X } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
+import { useCourseStore } from '../../stores/courseStore';
 import { CompletedCoursesModal } from '../Prerequisites/CompletedCoursesModal';
 
 export const GlobalHeader: React.FC = () => {
   const { email, logout } = useAuthStore();
+  const completedCourses = useCourseStore((state) => state.completedCourses);
   const [showCompletedModal, setShowCompletedModal] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
@@ -19,13 +21,22 @@ export const GlobalHeader: React.FC = () => {
         
         <div className="flex items-center space-x-1 sm:space-x-4">
           <span className="text-xs sm:text-sm font-medium hidden md:inline">{email}</span>
+          
+          {/* Prerequisites Button - Made more prominent */}
           <button 
             onClick={() => setShowCompletedModal(true)}
-            className="p-1.5 sm:p-2 hover:bg-purple-700 rounded-lg transition-colors"
-            title="Completed Courses"
+            className="relative flex items-center space-x-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors shadow-md"
+            title="Manage Prerequisites"
           >
             <CheckCircle size={18} className="sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline text-xs sm:text-sm font-semibold">Prerequisites</span>
+            {completedCourses.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-yellow-500 text-black text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                {completedCourses.length}
+              </span>
+            )}
           </button>
+          
           <button 
             onClick={() => setShowInfoModal(true)}
             className="p-1.5 sm:p-2 hover:bg-purple-700 rounded-lg transition-colors"
