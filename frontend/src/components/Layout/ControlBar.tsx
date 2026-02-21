@@ -98,11 +98,8 @@ export const ControlBar: React.FC = () => {
   const [allCourses, setAllCourses] = useState<CourseGroup[]>([]);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filters, setFilters] = useState({
-    hasSeats: false,
-    noWaitlist: false,
-    minCredits: '',
-    maxCredits: '',
-    onlyUpperDiv: false,
+    campus: '',
+    courseLevel: '',
   });
   
   const addCourseGroup = useCourseStore((state) => state.addCourseGroup);
@@ -229,6 +226,29 @@ export const ControlBar: React.FC = () => {
     // Filter by department
     if (course.dept !== selectedDept) return false;
     
+    // Apply filters
+    if (filters.campus) {
+      const hasMatchingCampus = course.sections.some(section => {
+        const location = section.location.toUpperCase();
+        // Map filter codes to campus names
+        if (filters.campus === 'BRNBY' || filters.campus === 'BURNABY') {
+          return location.includes('BURNABY') || location.includes('BRNBY');
+        } else if (filters.campus === 'SURREY') {
+          return location.includes('SURREY');
+        } else if (filters.campus === 'VANCR' || filters.campus === 'VANCOUVER') {
+          return location.includes('VANCOUVER') || location.includes('VANCR');
+        }
+        return false;
+      });
+      if (!hasMatchingCampus) return false;
+    }
+    
+    if (filters.courseLevel) {
+      const courseNum = parseInt(course.number);
+      const filterLevel = parseInt(filters.courseLevel);
+      if (courseNum < filterLevel || courseNum >= filterLevel + 100) return false;
+    }
+    
     if (!searchQuery) return false;
     
     const query = searchQuery.toLowerCase();
@@ -270,7 +290,7 @@ export const ControlBar: React.FC = () => {
           <div className="flex items-center gap-2 md:gap-4 md:flex-none">
             <button 
               onClick={() => setShowFilterModal(true)}
-              className="flex items-center space-x-2 px-3 md:px-4 py-2 border border-gray-600 rounded-lg hover:bg-dark-card-hover transition-colors whitespace-nowrap md:flex-none"
+              className="flex items-center space-x-2 px-3 md:px-4 py-2 border border-gray-600 rounded-lg hover:bg-dark-card-hover transition-colors whitespace-nowrap md:flex-none text-white"
             >
               <Filter size={16} className="md:w-[18px] md:h-[18px]" />
               <span className="text-xs md:text-sm">Filter</span>
@@ -391,60 +411,43 @@ export const ControlBar: React.FC = () => {
           </div>
           
           <div className="space-y-4">
-            <label className="flex items-center justify-between p-3 bg-dark-bg rounded-lg border border-gray-700 hover:border-gray-600 cursor-pointer">
-              <span className="text-sm text-gray-300">Only courses with available seats</span>
-              <input 
-                type="checkbox" 
-                checked={filters.hasSeats}
-                onChange={(e) => setFilters({...filters, hasSeats: e.target.checked})}
-                className="w-4 h-4" 
-              />
-            </label>
-            
-            <label className="flex items-center justify-between p-3 bg-dark-bg rounded-lg border border-gray-700 hover:border-gray-600 cursor-pointer">
-              <span className="text-sm text-gray-300">No waitlist</span>
-              <input 
-                type="checkbox" 
-                checked={filters.noWaitlist}
-                onChange={(e) => setFilters({...filters, noWaitlist: e.target.checked})}
-                className="w-4 h-4" 
-              />
-            </label>
-            
-            <label className="flex items-center justify-between p-3 bg-dark-bg rounded-lg border border-gray-700 hover:border-gray-600 cursor-pointer">
-              <span className="text-sm text-gray-300">Only upper division (300+)</span>
-              <input 
-                type="checkbox" 
-                checked={filters.onlyUpperDiv}
-                onChange={(e) => setFilters({...filters, onlyUpperDiv: e.target.checked})}
-                className="w-4 h-4" 
-              />
-            </label>
+            <div className="space-y-2">
+              <label className="block text-sm text-gray-400">Campus</label>
+              <select
+                value={filters.campus}
+                onChange={(e) => setFilters({...filters, campus: e.target.value})}
+                className="w-full px-3 py-2 bg-dark-bg border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-sfu-red"
+              >
+                <option value="">Any Campus</option>
+                <option value="BURNABY">Burnaby</option>
+                <option value="VANCOUVER">Vancouver</option>
+                <option value="SURREY">Surrey</option>
+              </select>
+            </div>
             
             <div className="space-y-2">
-              <label className="block text-sm text-gray-400">Credits Range</label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="number"
-                  placeholder="Min"
-                  value={filters.minCredits}
-                  onChange={(e) => setFilters({...filters, minCredits: e.target.value})}
-                  className="flex-1 px-3 py-2 bg-dark-bg border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-sfu-red"
-                />
-                <span className="text-gray-400">to</span>
-                <input
-                  type="number"
-                  placeholder="Max"
-                  value={filters.maxCredits}
-                  onChange={(e) => setFilters({...filters, maxCredits: e.target.value})}
-                  className="flex-1 px-3 py-2 bg-dark-bg border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-sfu-red"
-                />
-              </div>
+              <label className="block text-sm text-gray-400">Course Level</label>
+              <select
+                value={filters.courseLevel}
+                onChange={(e) => setFilters({...filters, courseLevel: e.target.value})}
+                className="w-full px-3 py-2 bg-dark-bg border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-sfu-red"
+              >
+                <option value="">All Levels</option>
+                <option value="100">100-level</option>
+                <option value="200">200-level</option>
+                <option value="300">300-level</option>
+                <option value="400">400-level</option>
+                <option value="500">500-level</option>
+                <option value="600">600-level</option>
+                <option value="700">700-level</option>
+                <option value="800">800-level</option>
+                <option value="900">900-level</option>
+              </select>
             </div>
             
             <div className="flex items-center space-x-2 pt-4">
               <button
-                onClick={() => setFilters({hasSeats: false, noWaitlist: false, minCredits: '', maxCredits: '', onlyUpperDiv: false})}
+                onClick={() => setFilters({campus: '', wqb: '', courseLevel: ''})}
                 className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-sm font-medium"
               >
                 Clear Filters

@@ -29,6 +29,11 @@ export const CompletedCoursesModal: React.FC<CompletedCoursesModalProps> = ({ is
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [eligibleSearchQuery, setEligibleSearchQuery] = useState('');
+  const [statusFilters, setStatusFilters] = useState({
+    ready: true,
+    missing: true,
+    noPrereq: true
+  });
 
   useEffect(() => {
     setCourses([...completedCourses]);
