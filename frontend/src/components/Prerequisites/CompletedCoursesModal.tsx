@@ -165,16 +165,13 @@ export const CompletedCoursesModal: React.FC<CompletedCoursesModalProps> = ({ is
   };
 
   const handleSave = async () => {
-    setCompletedCourses(courses);
     setSaveMessage(null);
     
-    // Save to backend
+    // Try to save to backend first
     const token = localStorage.getItem('token');
     if (token) {
       try {
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
-        console.log('Saving to:', `${API_URL}/user/courses`);
-        console.log('Payload:', { completed_courses: courses });
         const response = await fetch(`${API_URL}/user/courses`, {
           method: 'PUT',
           headers: {
@@ -185,20 +182,35 @@ export const CompletedCoursesModal: React.FC<CompletedCoursesModalProps> = ({ is
         });
         
         if (response.ok) {
+          // Backend save succeeded, now save locally
+          setCompletedCourses(courses);
           setSaveMessage('✓ Saved successfully!');
-          // Clear message after 3 seconds
           setTimeout(() => setSaveMessage(null), 3000);
+        } else if (response.status === 401) {
+          // Token expired - prompt user to log in again
+          setCompletedCourses(courses);
+          setSaveMessage('⚠ Session expired - please log out and log back in');
+          setTimeout(() => setSaveMessage(null), 7000);
         } else {
+          // Backend save failed - save locally anyway but warn user
+          setCompletedCourses(courses);
           const errorText = await response.text();
-          console.error('Save failed:', response.status, errorText, 'URL:', `${API_URL}/user/courses`);
-          setSaveMessage(`✗ Failed to save (${response.status})`);
+          console.error('Backend save failed:', response.status, errorText);
+          setSaveMessage('⚠ Saved to this device only (sync failed)');
+          setTimeout(() => setSaveMessage(null), 5000);
         }
       } catch (error) {
-        console.error('Failed to save completed courses:', error);
-        setSaveMessage('✗ Failed to save');
+        // Network error - save locally anyway but warn user
+        setCompletedCourses(courses);
+        console.error('Backend save failed:', error);
+        setSaveMessage('⚠ Saved to this device only (offline)');
+        setTimeout(() => setSaveMessage(null), 5000);
       }
     } else {
-      setSaveMessage('✗ Not logged in');
+      // No token - save locally only
+      setCompletedCourses(courses);
+      setSaveMessage('⚠ Saved to this device only (not logged in)');
+      setTimeout(() => setSaveMessage(null), 5000);
     }
     
     // Don't close modal - stay on the page
