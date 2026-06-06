@@ -8,27 +8,33 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+      - name: Add host key to known_hosts
+        run: |
+          ssh-keyscan -H 100.53.18.140 >> ~/.ssh/known_hosts
+
       - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: 100.53.18.140
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          command_timeout: 30m
-          timeout: 10m
-          script_stop: true
-          script: |
+        timeout-minutes: 30
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes ubuntu@100.53.18.140 << 'DEPLOY_EOF'
+            set -e
             # Check if repo exists, if not clone it
             if [ ! -d ~/SFU-Course-Tracker/.git ]; then
               rm -rf ~/SFU-Course-Tracker
               git clone https://github.com/ttn54/SFU-Course-Tracker.git ~/SFU-Course-Tracker
             fi
-            
+
             cd ~/SFU-Course-Tracker
             git fetch origin
             git reset --hard origin/main
             git pull origin main
-            
+
             docker compose down
             docker compose build
             docker compose up -d
+          DEPLOY_EOF
