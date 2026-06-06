@@ -8,38 +8,25 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-
-      - name: Check EC2 connectivity
-        run: |
-          echo "Checking if EC2 is reachable on port 22..."
-          nc -zv -w 10 100.53.18.140 22 || echo "Warning: port 22 check failed, will try SSH anyway"
-
       - name: Deploy to EC2
-        timeout-minutes: 30
-        run: |
-          ssh -i ~/.ssh/deploy_key \
-              -o StrictHostKeyChecking=accept-new \
-              -o ConnectTimeout=15 \
-              -o ServerAliveInterval=30 \
-              ubuntu@100.53.18.140 << 'DEPLOY_EOF'
-            set -e
+        uses: appleboy/ssh-action@master
+        with:
+          host: 100.53.18.140
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 30m
+          script: |
             # Check if repo exists, if not clone it
             if [ ! -d ~/SFU-Course-Tracker/.git ]; then
               rm -rf ~/SFU-Course-Tracker
               git clone https://github.com/ttn54/SFU-Course-Tracker.git ~/SFU-Course-Tracker
             fi
-
+            
             cd ~/SFU-Course-Tracker
             git fetch origin
             git reset --hard origin/main
             git pull origin main
-
+            
             docker compose down
             docker compose build
             docker compose up -d
-          DEPLOY_EOF
