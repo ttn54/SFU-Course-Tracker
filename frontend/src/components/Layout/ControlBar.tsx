@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Filter, Search, Plus, X } from 'lucide-react';
-import { useCourseStore } from '../../stores/courseStore';
+import React, { useState, useEffect, useRef } from 'react';
+import { Filter, Search, Plus, X, Loader2 } from 'lucide-react';
+import { useCourseStore, AVAILABLE_TERMS, termToParts } from '../../stores/courseStore';
 import type { CourseGroup } from '../../types';
 import { api } from '../../services/api';
 import { generateCourseColor } from '../../utils/colorGenerator';
+import { showToast } from './Toast';
 
 // Department name mapping
 const DEPT_NAMES: Record<string, string> = {
@@ -86,24 +87,38 @@ const DEPT_NAMES: Record<string, string> = {
   'WL': 'World Literature'
 };
 
-const terms = ['Spring 2026', 'Summer 2026'];
-
 export const ControlBar: React.FC = () => {
-  const [selectedTerm, setSelectedTerm] = useState('Spring 2026');
+  const selectedTerm = useCourseStore((state) => state.selectedTerm);
+  const setSelectedTerm = useCourseStore((state) => state.setSelectedTerm);
   const [selectedDept, setSelectedDept] = useState('CMPT');
   const [departments, setDepartments] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<CourseGroup | null>(null);
   const [allCourses, setAllCourses] = useState<CourseGroup[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filters, setFilters] = useState({
     campus: '',
     courseLevel: '',
   });
   
+  const searchRef = useRef<HTMLDivElement>(null);
+  const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
   const addCourseGroup = useCourseStore((state) => state.addCourseGroup);
   const courseGroups = useCourseStore((state) => state.courseGroups);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Fetch departments on mount
   useEffect(() => {
@@ -124,11 +139,9 @@ export const ControlBar: React.FC = () => {
   // Fetch all courses from backend when term changes
   useEffect(() => {
     const fetchCourses = async () => {
+      setIsLoading(true);
       try {
-        // Parse term like "Spring 2026" into term="spring" and year="2026"
-        const [termName, yearStr] = selectedTerm.split(' ');
-        const term = termName.toLowerCase();
-        const year = yearStr;
+        const { term, year } = termToParts(selectedTerm);
         
         const rawCourses = await api.getAllCourses(term, year);
         
@@ -212,6 +225,9 @@ export const ControlBar: React.FC = () => {
         setAllCourses(Array.from(courseMap.values()));
       } catch (error) {
         console.error('Failed to fetch courses:', error);
+        showToast('Failed to load courses. Please try again.', 'error');
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -274,13 +290,29 @@ export const ControlBar: React.FC = () => {
       });
       
       if (!result.success) {
-        alert(result.error || 'Failed to add course');
+        showToast(result.error || 'Failed to add course', 'warning');
         return;
       }
       
+      showToast(`${selectedCourse.dept} ${selectedCourse.number} added`, 'success');
       setSelectedCourse(null);
       setSearchQuery('');
     }
+  };
+
+  const handleSearchBlur = () => {
+    // Delay closing so click on suggestion item can register first
+    blurTimeoutRef.current = setTimeout(() => {
+      setShowSuggestions(false);
+    }, 200);
+  };
+
+  const handleSearchFocus = () => {
+    if (blurTimeoutRef.current) {
+      clearTimeout(blurTimeoutRef.current);
+      blurTimeoutRef.current = null;
+    }
+    if (searchQuery) setShowSuggestions(true);
   };
 
   return (
@@ -290,18 +322,21 @@ export const ControlBar: React.FC = () => {
           <div className="flex items-center gap-2 md:gap-4 md:flex-none">
             <button 
               onClick={() => setShowFilterModal(true)}
-              className="flex items-center space-x-2 px-3 md:px-4 py-2 border border-gray-600 rounded-lg hover:bg-dark-card-hover transition-colors whitespace-nowrap md:flex-none text-white"
+              className="flex items-center space-x-2 px-3 md:px-4 py-2 border border-gray-600 rounded-lg hover:bg-dark-card-hover whitespace-nowrap md:flex-none text-white"
             >
               <Filter size={16} className="md:w-[18px] md:h-[18px]" />
               <span className="text-xs md:text-sm">Filter</span>
+              {Object.values(filters).some(v => v) && (
+                <span className="w-2 h-2 rounded-full bg-sfu-red" />
+              )}
             </button>
 
             <select
               value={selectedTerm}
               onChange={(e) => setSelectedTerm(e.target.value)}
-              className="flex-1 md:flex-none md:w-[150px] px-3 md:px-4 py-2 bg-dark-bg border border-gray-600 rounded-lg text-xs md:text-sm hover:border-gray-500 focus:outline-none focus:border-sfu-red transition-colors"
+              className="flex-1 md:flex-none md:w-[150px] px-3 md:px-4 py-2 bg-dark-bg border border-gray-600 rounded-lg text-xs md:text-sm hover:border-gray-500 focus:outline-none focus:border-sfu-red"
             >
-              {terms.map((term) => (
+              {AVAILABLE_TERMS.map((term) => (
                 <option key={term} value={term}>
                   {term}
                 </option>
@@ -312,7 +347,7 @@ export const ControlBar: React.FC = () => {
         <select
           value={selectedDept}
           onChange={(e) => setSelectedDept(e.target.value)}
-          className="px-3 md:px-4 py-2 bg-dark-bg border border-gray-600 rounded-lg text-xs md:text-sm hover:border-gray-500 focus:outline-none focus:border-sfu-red transition-colors w-full md:w-[280px] md:flex-none"
+          className="px-3 md:px-4 py-2 bg-dark-bg border border-gray-600 rounded-lg text-xs md:text-sm hover:border-gray-500 focus:outline-none focus:border-sfu-red w-full md:w-[280px] md:flex-none"
         >
           {departments.map((dept) => (
             <option key={dept} value={dept}>
@@ -321,23 +356,29 @@ export const ControlBar: React.FC = () => {
           ))}
         </select>
 
-        <div className="flex-1 min-w-0 relative w-full md:w-auto">
+        <div className="flex-1 min-w-0 relative w-full md:w-auto" ref={searchRef}>
           <div className="flex items-center space-x-2">
             <div className="relative flex-1">
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                <Search size={16} className="md:w-[18px] md:h-[18px]" />
+                {isLoading ? (
+                  <Loader2 size={16} className="md:w-[18px] md:h-[18px] animate-spin" />
+                ) : (
+                  <Search size={16} className="md:w-[18px] md:h-[18px]" />
+                )}
               </div>
               <input
                 type="text"
-                placeholder="Search courses..."
+                placeholder={isLoading ? "Loading courses..." : "Search courses..."}
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setSelectedCourse(null);
                   setShowSuggestions(e.target.value.length > 0);
                 }}
-                onFocus={() => searchQuery && setShowSuggestions(true)}
-                className="w-full pl-9 md:pl-10 pr-4 py-2 bg-dark-bg border border-gray-600 rounded-lg text-xs md:text-sm hover:border-gray-500 focus:outline-none focus:border-sfu-red transition-colors"
+                onFocus={handleSearchFocus}
+                onBlur={handleSearchBlur}
+                disabled={isLoading}
+                className="w-full pl-9 md:pl-10 pr-4 py-2 bg-dark-bg border border-gray-600 rounded-lg text-xs md:text-sm hover:border-gray-500 focus:outline-none focus:border-sfu-red disabled:opacity-50 disabled:cursor-not-allowed"
               />
               
               {showSuggestions && availableCourses.length > 0 && (
@@ -370,7 +411,7 @@ export const ControlBar: React.FC = () => {
                   ))}
                 </div>
               )}
-              {showSuggestions && availableCourses.length === 0 && searchQuery && (
+              {showSuggestions && availableCourses.length === 0 && searchQuery && !isLoading && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-dark-card border border-gray-600 rounded-lg shadow-xl z-50">
                   <div className="px-4 py-3 text-sm text-gray-400 text-center">
                     No courses found
@@ -382,7 +423,7 @@ export const ControlBar: React.FC = () => {
             <button 
               onClick={handleAddCourse}
               disabled={!selectedCourse}
-              className={`flex items-center space-x-1 md:space-x-2 px-3 md:px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
+              className={`flex items-center space-x-1 md:space-x-2 px-3 md:px-4 py-2 rounded-lg whitespace-nowrap ${
                 selectedCourse 
                   ? 'bg-sfu-red hover:bg-red-800 cursor-pointer' 
                   : 'bg-gray-600 cursor-not-allowed opacity-50'
@@ -405,7 +446,7 @@ export const ControlBar: React.FC = () => {
               <Filter size={20} className="sm:w-6 sm:h-6" />
               <span className="text-base sm:text-xl">Filter Courses</span>
             </h3>
-            <button onClick={() => setShowFilterModal(false)} className="p-1.5 sm:p-2 hover:bg-gray-700 rounded transition-colors flex-shrink-0">
+            <button onClick={() => setShowFilterModal(false)} className="p-1.5 sm:p-2 hover:bg-gray-700 rounded flex-shrink-0">
               <X size={18} className="sm:w-5 sm:h-5" />
             </button>
           </div>
@@ -448,13 +489,13 @@ export const ControlBar: React.FC = () => {
             <div className="flex items-center space-x-2 pt-4">
               <button
                 onClick={() => setFilters({campus: '', courseLevel: ''})}
-                className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-sm font-medium"
+                className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium"
               >
                 Clear Filters
               </button>
               <button
                 onClick={() => setShowFilterModal(false)}
-                className="flex-1 px-4 py-2 bg-sfu-red hover:bg-red-800 rounded-lg transition-colors text-sm font-medium"
+                className="flex-1 px-4 py-2 bg-sfu-red hover:bg-red-800 rounded-lg text-sm font-medium"
               >
                 Apply
               </button>

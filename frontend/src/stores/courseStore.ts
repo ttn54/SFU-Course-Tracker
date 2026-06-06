@@ -52,12 +52,56 @@ const saveScheduleToBackend = async (userId: string | null, courseGroups: Course
   }
 };
 
+// ── Term helpers ────────────────────────────────────────────────
+/** Convert "Spring 2026" → "2026/spring" (API format) */
+export function termToApiFormat(term: string): string {
+  const [season, year] = term.split(' ');
+  return `${year}/${season.toLowerCase()}`;
+}
+
+/** Convert "Spring 2026" → { term: "spring", year: "2026" } */
+export function termToParts(term: string): { term: string; year: string } {
+  const [season, year] = term.split(' ');
+  return { term: season.toLowerCase(), year };
+}
+
+/** Convert "Spring 2026" → "2026sp" (CourSys format) */
+export function termToCourSysCode(term: string): string {
+  const seasonMap: Record<string, string> = {
+    spring: 'sp',
+    summer: 'su',
+    fall: 'fa',
+  };
+  const [season, year] = term.split(' ');
+  return `${year}${seasonMap[season.toLowerCase()] || 'sp'}`;
+}
+
+// ── Settings type ──────────────────────────────────────────────
+export interface AppSettings {
+  show24HourTime: boolean;
+  showEnrollmentStats: boolean;
+  autoSave: boolean;
+}
+
+const DEFAULT_SETTINGS: AppSettings = {
+  show24HourTime: false,
+  showEnrollmentStats: true,
+  autoSave: true,
+};
+
+// ── Available terms ────────────────────────────────────────────
+export const AVAILABLE_TERMS = ['Spring 2026', 'Summer 2026', 'Fall 2026'];
+
 interface CourseStore {
   userId: string | null;
   courseGroups: CourseGroup[];
   completedCourses: string[];
+  selectedTerm: string;
+  settings: AppSettings;
   setUserId: (userId: string | null) => void;
   setCompletedCourses: (courses: string[]) => void;
+  setSelectedTerm: (term: string) => void;
+  updateSettings: (patch: Partial<AppSettings>) => void;
   loadScheduleFromBackend: () => Promise<void>;
   addCourseGroup: (group: CourseGroup) => Promise<{success: boolean; error?: string}>;
   removeCourseGroup: (courseKey: string) => void;
@@ -77,6 +121,8 @@ export const useCourseStore = create<CourseStore>()(
   userId: null,
   courseGroups: [],
   completedCourses: [],
+  selectedTerm: AVAILABLE_TERMS[0],
+  settings: { ...DEFAULT_SETTINGS },
   
   setUserId: (userId: string | null) => {
     const currentUserId = get().userId;
@@ -94,6 +140,16 @@ export const useCourseStore = create<CourseStore>()(
   
   setCompletedCourses: (courses: string[]) => {
     set({ completedCourses: courses });
+  },
+
+  setSelectedTerm: (term: string) => {
+    set({ selectedTerm: term });
+  },
+
+  updateSettings: (patch: Partial<AppSettings>) => {
+    set((state) => ({
+      settings: { ...state.settings, ...patch },
+    }));
   },
   
   loadScheduleFromBackend: async () => {
@@ -180,8 +236,8 @@ export const useCourseStore = create<CourseStore>()(
               ...g, 
               isScheduled: true, 
               scheduledSectionId: sectionId,
-              combinedSection: combinedSection // Store combined section separately
-            } as any
+              combinedSection: combinedSection
+            }
           : g
       );
       saveScheduleToBackend(state.userId, newGroups);
@@ -204,6 +260,8 @@ export const useCourseStore = create<CourseStore>()(
   },
   
   clearAll: () => {
+    const state = get();
+    saveScheduleToBackend(state.userId, []);
     set({ courseGroups: [] });
   },
   
@@ -224,9 +282,9 @@ export const useCourseStore = create<CourseStore>()(
       .map((g) => {
         const section = g.sections.find((s) => s.id === g.scheduledSectionId);
         // If combined section was stored, use it; otherwise use original section
-        return (g as any).combinedSection || section;
+        return g.combinedSection || section;
       })
-      .filter(Boolean);
+      .filter((s): s is CourseSection => Boolean(s));
   },
   
   getUnscheduledGroups: () => {
@@ -298,6 +356,8 @@ export const useCourseStore = create<CourseStore>()(
         userId: state.userId,
         courseGroups: state.courseGroups,
         completedCourses: state.completedCourses,
+        selectedTerm: state.selectedTerm,
+        settings: state.settings,
       }),
     }
   )

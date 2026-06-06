@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import type { CourseGroup, CourseSection } from '../../types';
 import { X } from 'lucide-react';
 import { api } from '../../services/api';
+import { useCourseStore, termToApiFormat } from '../../stores/courseStore';
 
 interface EnrollmentCache {
   [sectionId: string]: {
@@ -23,6 +24,8 @@ export const SectionSelectorModal: React.FC<SectionSelectorModalProps> = ({
 }) => {
   const [enrollmentData, setEnrollmentData] = useState<EnrollmentCache>({});
   const [loading, setLoading] = useState(true);
+  const selectedTerm = useCourseStore((state) => state.selectedTerm);
+  const apiTerm = termToApiFormat(selectedTerm);
 
   // Group sections: Lecture sections with their corresponding tutorials
   const groupedSections = React.useMemo(() => {
@@ -78,9 +81,6 @@ export const SectionSelectorModal: React.FC<SectionSelectorModalProps> = ({
       section: `${lecture.section}+${tutorial.section}`
     };
     
-    console.log('Combined section:', combinedSection);
-    console.log('Combined schedule:', combinedSection.schedule);
-    
     onSelectSection(combinedSection);
   };
 
@@ -95,7 +95,7 @@ export const SectionSelectorModal: React.FC<SectionSelectorModalProps> = ({
           section: section.section
         }));
 
-        const results = await api.getBatchEnrollment(coursesToFetch, '2025/fall');
+        const results = await api.getBatchEnrollment(coursesToFetch, apiTerm);
         
         const cache: EnrollmentCache = {};
         results.forEach((result, index) => {

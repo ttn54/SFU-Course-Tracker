@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Trash2, MapPin } from 'lucide-react';
 import type { CourseSection } from '../../types';
-import { useCourseStore } from '../../stores/courseStore';
+import { useCourseStore, termToApiFormat, termToCourSysCode } from '../../stores/courseStore';
 import { useSingleEnrollment } from '../../hooks/useEnrollmentData';
 import { api } from '../../services/api';
 
@@ -16,6 +16,11 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
   
   const courseGroups = useCourseStore((state) => state.courseGroups);
   const unscheduleSection = useCourseStore((state) => state.unscheduleSection);
+  const selectedTerm = useCourseStore((state) => state.selectedTerm);
+
+  // Derive term formats from the globally selected term
+  const apiTerm = termToApiFormat(selectedTerm);
+  const termCode = termToCourSysCode(selectedTerm);
 
   // For combined sections like "D100+D102", extract the lecture section (D100) for enrollment data
   const lectureSection = course.section.includes('+') 
@@ -27,12 +32,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
     course.dept,
     course.number,
     lectureSection,
-    '2025/fall'
+    apiTerm
   );
 
-  // Generate term string for CourSys URL (e.g., "2025fa" for Fall 2025)
-  const termCode = "2025fa";
-  
   // Convert section format: "D100" -> "d1", "D101" -> "d1", "D200" -> "d2"
   const sectionCode = lectureSection.toLowerCase().replace(/^([a-z])(\d)\d+$/, '$1$2');
 
@@ -64,7 +66,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
   };
 
   return (
-    <div className="bg-dark-card border border-gray-700 rounded-lg overflow-hidden hover:border-gray-600 transition-colors">
+    <div className="bg-dark-card border border-gray-700 rounded-lg overflow-hidden hover:border-gray-600">
       {/* Header */}
       <div 
         className="flex items-center justify-between p-4 cursor-pointer hover:bg-dark-card-hover"
@@ -95,7 +97,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
         <div className="flex items-center space-x-2">
           <button
             onClick={handleRemove}
-            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-950 rounded transition-colors"
+            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-950 rounded"
             title="Unschedule course"
           >
             <Trash2 size={18} />
