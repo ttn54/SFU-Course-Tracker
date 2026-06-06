@@ -7,7 +7,7 @@
   body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, Cantarell, sans-serif;
     color: #333;
   }
 }
@@ -94,7 +94,8 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-gray-500;
 }
-/* Fix dropdown option text color */
+
+/* Dropdown select styling */
 select option {
   background-color: #2d2d2d;
   color: white;
@@ -103,17 +104,28 @@ select option {
 select {
   color: white;
 }
-/* Smooth transitions */
-* {
+
+/* Apply transitions only to interactive elements */
+button,
+a,
+input,
+select,
+.transition-colors {
   @apply transition-colors duration-200;
 }
 
-/* Dropdown select styling */
-select {
-  color: white;
+/* Toast slide-in animation */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-select option {
-  background-color: #2d2d2d;
-  color: white;
+.animate-slide-in {
+  animation: slide-in 0.25s ease-out;
 }

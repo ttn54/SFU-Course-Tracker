@@ -206,7 +206,7 @@ async def get_live_enrollment(
     dept: str,
     number: str,
     section: str,
-    term: Optional[str] = Query("2026/spring", description="Term in format YYYY/season")
+    term: Optional[str] = Query("2026/spring", description="Term in format YYYY/season (e.g. 2026/spring, 2026/summer, 2026/fall)")
 ) -> dict[str, Any]:
     """
     Fetch live enrollment data from CourSys in real-time.
@@ -245,7 +245,7 @@ async def get_live_enrollment(
 @router.post("/enrollment/batch")
 async def get_batch_enrollment(
     courses: list[dict[str, str]] = Body(..., description="List of course sections"),
-    term: Optional[str] = Query("2026/spring", description="Term in format YYYY/season")
+    term: Optional[str] = Query("2026/spring", description="Term in format YYYY/season (e.g. 2026/spring, 2026/summer, 2026/fall)")
 ) -> list[dict[str, Any]]:
     """
     Fetch live enrollment data for multiple courses at once.
