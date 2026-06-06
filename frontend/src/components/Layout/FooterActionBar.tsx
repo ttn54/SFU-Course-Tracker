@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Trash2, Cloud, X, AlertTriangle } from 'lucide-react';
+import { Download, Trash2, Cloud, AlertTriangle } from 'lucide-react';
 import { useCourseStore } from '../../stores/courseStore';
 import { showToast } from './Toast';
 
