@@ -9,12 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to EC2
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: 100.53.18.140
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           command_timeout: 30m
+          timeout: 10m
+          script_stop: true
           script: |
             # Check if repo exists, if not clone it
             if [ ! -d ~/SFU-Course-Tracker/.git ]; then
