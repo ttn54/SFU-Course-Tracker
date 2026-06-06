@@ -6,6 +6,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { useCourseStore } from '../../stores/courseStore';
 import type { CalendarEvent, CourseGroup, CourseSection } from '../../types';
 import { SectionSelectorModal } from '../CourseList/SectionSelectorModal';
+import { showToast } from '../Layout/Toast';
 
 const locales = {
   'en-US': enUS,
@@ -138,7 +139,7 @@ export const WeeklyCalendar: React.FC = () => {
       const result = scheduleSection(pendingCourseGroup.courseKey, section.id, section);
       
       if (!result.success) {
-        alert(result.error || 'Failed to schedule section');
+        showToast(result.error || 'Failed to schedule section', 'error');
         return;
       }
       
