@@ -109,9 +109,8 @@ select {
 button,
 a,
 input,
-select,
-.transition-colors {
-  @apply transition-colors duration-200;
+select {
+  @apply transition duration-200;
 }
 
 /* Toast slide-in animation */
