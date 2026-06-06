@@ -11,6 +11,8 @@ export const GlobalHeader: React.FC = () => {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const settings = useCourseStore((state) => state.settings);
+  const updateSettings = useCourseStore((state) => state.updateSettings);
 
   return (
     <>
@@ -164,15 +166,30 @@ export const GlobalHeader: React.FC = () => {
               <div className="space-y-2">
                 <label className="flex items-center justify-between p-3 bg-dark-bg rounded-lg border border-gray-700 hover:border-gray-600 cursor-pointer">
                   <span className="text-sm">Show 24-hour time</span>
-                  <input type="checkbox" className="w-4 h-4" />
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 accent-purple-600"
+                    checked={settings.show24HourTime}
+                    onChange={(e) => updateSettings({ show24HourTime: e.target.checked })}
+                  />
                 </label>
                 <label className="flex items-center justify-between p-3 bg-dark-bg rounded-lg border border-gray-700 hover:border-gray-600 cursor-pointer">
                   <span className="text-sm">Show enrollment stats</span>
-                  <input type="checkbox" defaultChecked className="w-4 h-4" />
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 accent-purple-600"
+                    checked={settings.showEnrollmentStats}
+                    onChange={(e) => updateSettings({ showEnrollmentStats: e.target.checked })}
+                  />
                 </label>
                 <label className="flex items-center justify-between p-3 bg-dark-bg rounded-lg border border-gray-700 hover:border-gray-600 cursor-pointer">
                   <span className="text-sm">Auto-save schedule</span>
-                  <input type="checkbox" defaultChecked className="w-4 h-4" />
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 accent-purple-600"
+                    checked={settings.autoSave}
+                    onChange={(e) => updateSettings({ autoSave: e.target.checked })}
+                  />
                 </label>
               </div>
               <p className="text-xs text-gray-500 pt-4 border-t border-gray-700">
