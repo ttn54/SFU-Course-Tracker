@@ -8,25 +8,29 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@master
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          host: 100.53.18.140
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          command_timeout: 30m
-          script: |
-            # Check if repo exists, if not clone it
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Deploy to EC2
+        timeout-minutes: 30
+        run: |
+          ssh -o StrictHostKeyChecking=accept-new \
+              -o ConnectTimeout=15 \
+              ubuntu@100.53.18.140 << 'DEPLOY_EOF'
+            set -e
             if [ ! -d ~/SFU-Course-Tracker/.git ]; then
               rm -rf ~/SFU-Course-Tracker
               git clone https://github.com/ttn54/SFU-Course-Tracker.git ~/SFU-Course-Tracker
             fi
-            
+
             cd ~/SFU-Course-Tracker
             git fetch origin
             git reset --hard origin/main
             git pull origin main
-            
+
             docker compose down
             docker compose build
             docker compose up -d
+          DEPLOY_EOF
