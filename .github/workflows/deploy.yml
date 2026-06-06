@@ -14,14 +14,19 @@ jobs:
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-      - name: Add host key to known_hosts
+      - name: Check EC2 connectivity
         run: |
-          ssh-keyscan -H 100.53.18.140 >> ~/.ssh/known_hosts
+          echo "Checking if EC2 is reachable on port 22..."
+          nc -zv -w 10 100.53.18.140 22 || echo "Warning: port 22 check failed, will try SSH anyway"
 
       - name: Deploy to EC2
         timeout-minutes: 30
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes ubuntu@100.53.18.140 << 'DEPLOY_EOF'
+          ssh -i ~/.ssh/deploy_key \
+              -o StrictHostKeyChecking=accept-new \
+              -o ConnectTimeout=15 \
+              -o ServerAliveInterval=30 \
+              ubuntu@100.53.18.140 << 'DEPLOY_EOF'
             set -e
             # Check if repo exists, if not clone it
             if [ ! -d ~/SFU-Course-Tracker/.git ]; then
